@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경주동부 공개강연 계획표</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#b8860b;--gold-light:#d4a843;--gold-pale:#f5e6b8;
+  --navy:#1a2744;--navy-mid:#2c3e6b;
+  --cream:#faf7f0;--cream-dark:#f0ead8;
+  --text:#1a1a1a;--text-muted:#6b5e4a;
+  --border:#aaa;--shadow:0 4px 24px rgba(26,39,68,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:#eee;color:var(--text);min-height:100vh;}
+
+/* ── App Header ── */
+.app-header{
+  background:linear-gradient(135deg,var(--navy),var(--navy-mid));
+  color:white;padding:16px 20px 12px;text-align:center;
+  border-bottom:3px solid var(--gold);position:relative;overflow:hidden;
+}
+.app-header::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 28px,rgba(184,134,11,0.04) 28px,rgba(184,134,11,0.04) 56px);
+  pointer-events:none;}
+.app-header h1{font-family:'Noto Serif KR',serif;font-size:1.25rem;font-weight:700;position:relative;}
+.app-header p{font-size:0.72rem;color:var(--gold-light);margin-top:3px;position:relative;}
+
+/* ── Tab bar ── */
+.tab-bar{display:flex;background:var(--navy);border-bottom:1px solid rgba(184,134,11,0.3);}
+.tab-btn{flex:1;padding:10px 6px;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;font-weight:500;cursor:pointer;transition:all 0.2s;border-bottom:3px solid transparent;white-space:nowrap;}
+.tab-btn:hover{color:var(--gold-light);background:rgba(255,255,255,0.05);}
+.tab-btn.active{color:var(--gold-light);border-bottom-color:var(--gold);background:rgba(184,134,11,0.12);font-weight:700;}
+
+/* ── Year tabs (manage only) ── */
+.year-tabs{display:flex;background:#f0ead8;border-bottom:1px solid var(--border);overflow-x:auto;}
+.year-tab{flex:1;min-width:64px;padding:7px 4px;text-align:center;color:var(--text-muted);font-size:0.76rem;font-weight:500;cursor:pointer;transition:all 0.2s;border-bottom:3px solid transparent;white-space:nowrap;}
+.year-tab:hover{color:var(--navy);}
+.year-tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:700;background:white;}
+
+/* ── Pages ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ══════════════════════════════════
+   MANAGE PAGE
+══════════════════════════════════ */
+.manage-inner{padding:13px;max-width:700px;margin:0 auto;}
+
+.form-card{background:white;border-radius:11px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:13px;overflow:hidden;}
+.form-hdr{background:linear-gradient(90deg,var(--navy),var(--navy-mid));color:var(--gold-light);padding:10px 14px;font-size:0.78rem;font-weight:700;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;}
+.ftoggle{margin-left:auto;transition:transform 0.3s;display:inline-block;}
+.ftoggle.open{transform:rotate(180deg);}
+.form-body{padding:12px 14px;}
+.form-body.collapsed{display:none;}
+
+.frow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px;}
+.frow:last-child{margin-bottom:0;}
+.fg{flex:1;min-width:110px;}
+.fg label{display:block;font-size:0.65rem;font-weight:700;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.fg input,.fg select{width:100%;padding:7px 9px;border:1.5px solid #ccc;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:0.83rem;color:var(--text);background:var(--cream);outline:none;transition:border-color 0.2s;}
+.fg input:focus,.fg select:focus{border-color:var(--gold);background:white;box-shadow:0 0 0 3px rgba(184,134,11,0.1);}
+
+.tprev{background:var(--gold-pale);border:1.5px solid var(--gold-light);border-radius:6px;padding:7px 10px;font-size:0.82rem;color:var(--navy);font-weight:600;min-height:33px;display:flex;flex-direction:column;justify-content:center;font-family:'Noto Serif KR',serif;}
+.tprev.empty{color:var(--text-muted);font-weight:400;font-family:'Noto Sans KR',sans-serif;font-style:italic;}
+
+.spick{background:var(--cream);border:1.5px solid #ccc;border-radius:6px;padding:7px 9px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.spick select{flex:1;min-width:62px;padding:5px 6px;border:1.5px solid #ccc;border-radius:5px;font-family:'Noto Sans KR',sans-serif;font-size:0.8rem;background:white;color:var(--text);outline:none;cursor:pointer;}
+.spick select:focus{border-color:var(--gold);}
+.slbl{font-size:0.65rem;font-weight:700;color:var(--text-muted);white-space:nowrap;}
+.ddisp{width:100%;font-size:0.78rem;color:var(--navy);font-weight:600;padding-top:4px;border-top:1px dashed #ccc;}
+.ddisp.hidden{display:none;}
+
+.btn-add{width:100%;padding:9px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:white;border:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:0.84rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;}
+.btn-add:hover{opacity:0.84;}
+
+.list-hdr{display:flex;align-items:center;margin-bottom:8px;gap:7px;}
+.list-title{font-family:'Noto Serif KR',serif;font-size:0.92rem;font-weight:700;color:var(--navy);}
+.list-cnt{background:var(--navy);color:var(--gold-light);font-size:0.66rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+
+.entry-list{display:flex;flex-direction:column;gap:6px;}
+.ei{background:white;border:1px solid #ddd;border-radius:8px;padding:9px 11px;display:flex;align-items:flex-start;gap:9px;box-shadow:0 2px 5px rgba(0,0,0,0.05);animation:si .22s ease;}
+.ei:hover{border-color:var(--gold-light);box-shadow:0 4px 12px rgba(26,39,68,0.1);}
+@keyframes si{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.edb{display:flex;flex-direction:column;align-items:center;min-width:44px;background:var(--navy);border-radius:6px;padding:5px 3px;color:white;flex-shrink:0;}
+.edb .em{font-size:0.58rem;font-weight:700;color:var(--gold-light);}
+.edb .ed{font-size:1.22rem;font-weight:700;line-height:1;margin:2px 0 1px;}
+.edb .ew{font-size:0.54rem;color:rgba(255,255,255,0.5);}
+.einfo{flex:1;min-width:0;}
+.etop{display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap;}
+.enum{font-size:0.64rem;font-weight:700;color:var(--gold);}
+.econg{font-size:0.63rem;color:var(--text-muted);background:var(--cream-dark);border-radius:3px;padding:1px 5px;white-space:nowrap;}
+.etitle{font-family:'Noto Serif KR',serif;font-size:0.85rem;font-weight:600;color:var(--navy);line-height:1.4;margin-bottom:2px;}
+.emeta{font-size:0.71rem;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:6px;}
+.enote{font-size:0.68rem;color:#8b5e3c;background:#fef3e2;border-radius:3px;padding:2px 6px;margin-top:2px;display:inline-block;}
+.eact{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.bico{width:25px;height:25px;border-radius:5px;border:1px solid #ddd;background:var(--cream);cursor:pointer;font-size:0.74rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.bico:hover{background:#fee2e2;border-color:#fca5a5;}
+.bico.edit:hover{background:#dbeafe;border-color:#93c5fd;}
+
+.empty-state{text-align:center;padding:28px 20px;color:var(--text-muted);}
+.empty-state .icon{font-size:2.2rem;margin-bottom:8px;}
+.empty-state p{font-size:0.82rem;line-height:1.6;}
+
+/* ══════════════════════════════════
+   TABLE PAGE  ←  이미지와 동일
+══════════════════════════════════ */
+.tbl-page-inner{padding:14px;max-width:860px;margin:0 auto;}
+
+.tbl-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.ctrl-label{font-family:'Noto Serif KR',serif;font-size:0.92rem;font-weight:700;color:var(--navy);}
+.year-sel2{padding:6px 10px;border:1.5px solid #ccc;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:0.82rem;background:white;color:var(--navy);font-weight:700;outline:none;cursor:pointer;}
+.year-sel2:focus{border-color:var(--gold);}
+
+/* 반기 선택 */
+.half-sel{padding:6px 10px;border:1.5px solid #ccc;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:0.82rem;background:white;color:var(--navy);font-weight:700;outline:none;cursor:pointer;}
+
+.btn-print{padding:7px 14px;background:var(--navy);color:white;border:none;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;margin-left:auto;}
+.btn-print:hover{opacity:0.82;}
+
+/* ─ 공식 계획표 외곽 ─ */
+.plan-wrap{
+  background:white;
+  border:2px solid #333;
+  border-radius:4px;
+  overflow:hidden;
+  box-shadow:0 6px 30px rgba(0,0,0,0.15);
+}
+
+/* ─ 계획표 제목 행 ─ */
+.plan-title-row{
+  text-align:center;
+  padding:10px 8px 8px;
+  font-family:'Noto Serif KR',serif;
+  font-size:1.22rem;
+  font-weight:700;
+  letter-spacing:0.5px;
+  border-bottom:2px solid #333;
+  background:white;
+  color:#111;
+  position:relative;
+  cursor:pointer;
+  transition:background 0.15s;
+}
+.plan-title-row:hover{background:#fffde7;}
+.plan-title-row:hover::after{
+  content:'✏️';
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  font-size:0.85rem;opacity:0.5;
+}
+.plan-title-edit{
+  width:100%;border:none;outline:none;
+  font-family:'Noto Serif KR',serif;
+  font-size:1.18rem;font-weight:700;letter-spacing:0.5px;
+  text-align:center;background:#fffde7;color:#111;
+  padding:4px 8px;border-radius:4px;
+  border-bottom:2px solid var(--gold);
+}
+
+/* ─ 계획표 본표 ─ */
+.plan-table{
+  width:100%;
+  border-collapse:collapse;
+  font-family:'Noto Sans KR',sans-serif;
+  table-layout:fixed;
+}
+.plan-table th{
+  background:#1a1a1a;color:white;
+  padding:8px 5px;font-size:0.8rem;font-weight:700;
+  border:1px solid #444;text-align:center;
+  white-space:nowrap;
+}
+.plan-table td{
+  padding:7px 5px;font-size:0.82rem;
+  border:1px solid #bbb;
+  vertical-align:middle;text-align:center;
+  line-height:1.45;color:#111;
+}
+.plan-table tbody tr:hover td{background:#fffde6;}
+
+/* 열 너비 */
+.col-date  {width:7%;}
+.col-cong  {width:10%;}
+.col-speak {width:8%;}
+.col-talk  {width:45%;}
+.col-chair {width:8%;}
+.col-read  {width:8%;}
+.col-host  {width:8%;}
+
+/* 날짜 셀 */
+.td-date{white-space:nowrap;font-weight:600;}
+.td-date .month{font-size:0.75rem;color:#555;display:block;}
+.td-date .day{font-size:0.9rem;font-weight:700;color:#111;}
+
+/* 연제 셀 */
+.td-talk{text-align:left;padding-left:8px;}
+.talk-num{font-size:0.72rem;color:#555;margin-right:2px;}
+.talk-txt{font-size:0.82rem;color:#111;font-family:'Noto Serif KR',serif;font-weight:600;}
+
+/* 특별행 (대회, 순회 등) */
+.special-row td{
+  background:#f5f5f5;
+  font-family:'Noto Serif KR',serif;
+  font-size:1.05rem;
+  font-weight:700;
+  letter-spacing:4px;
+  color:#111;
+  text-align:center;
+  padding:9px 4px;
+  border-color:#999;
+}
+
+/* 굵은 강조 회중/연사 */
+.bold-cell{font-weight:800 !important;color:#000 !important;}
+
+/* 하단 성구 */
+.plan-footer{
+  text-align:center;
+  padding:10px 8px 11px;
+  font-family:'Noto Serif KR',serif;
+  font-size:0.9rem;
+  font-weight:600;
+  color:#111;
+  border-top:2px solid #333;
+  background:white;
+  letter-spacing:0.5px;
+}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:12px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;max-height:92vh;overflow-y:auto;}
+.modal-head{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:var(--gold-light);padding:11px 15px;font-size:0.82rem;font-weight:700;position:sticky;top:0;z-index:1;}
+.modal-body{padding:13px 15px;}
+.modal-body .fg{margin-bottom:8px;}
+.modal-foot{padding:10px 15px;display:flex;gap:7px;border-top:1px solid #ddd;position:sticky;bottom:0;background:white;}
+.btn-cancel{flex:1;padding:8px;border:1.5px solid #ccc;border-radius:6px;background:white;color:var(--text);cursor:pointer;font-size:0.82rem;font-family:'Noto Sans KR',sans-serif;}
+.btn-save{flex:2;padding:8px;border:none;border-radius:6px;background:var(--navy);color:white;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;}
+
+/* ── 특별행 관리 ── */
+.special-mgr{background:white;border-radius:11px;border:1px solid #ccc;box-shadow:var(--shadow);margin-bottom:13px;overflow:hidden;}
+.special-mgr-hdr{background:linear-gradient(90deg,#4a3728,#6b4f3a);color:#f5e6b8;padding:10px 14px;font-size:0.78rem;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;}
+.special-mgr-body{padding:12px 14px;}
+.special-mgr-body.collapsed{display:none;}
+.special-list{display:flex;flex-direction:column;gap:5px;margin-bottom:9px;}
+.special-item{display:flex;align-items:center;gap:6px;background:var(--cream);border:1px solid #ddd;border-radius:5px;padding:6px 9px;font-size:0.82rem;}
+.special-item .si-date{color:var(--navy);font-weight:700;min-width:60px;}
+.special-item .si-text{flex:1;color:#333;}
+.si-del{background:none;border:none;cursor:pointer;color:#e53e3e;font-size:0.9rem;padding:0 3px;}
+.si-del:hover{color:#c53030;}
+
+/* ── Print ── */
+@media print{
+  body{background:white;}
+  .app-header,.tab-bar,.year-tabs,.manage-inner,.tbl-controls,.modal-overlay{display:none!important;}
+  .page{display:block!important;}
+  .tbl-page-inner{padding:0;max-width:100%;}
+  .plan-wrap{border:1.5px solid #333;box-shadow:none;border-radius:0;}
+  .plan-table th{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .special-row td{background:#f5f5f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media(max-width:520px){
+  .app-header h1{font-size:1rem;}
+  .frow{flex-direction:column;}
+  .fg{min-width:auto;}
+  .plan-table th,.plan-table td{padding:5px 3px;font-size:0.72rem;}
+  .col-read{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>📋 경주동부 공개강연 계획표</h1>
+  <p>경주 동부 회중 · Gyeongju East Congregation</p>
+  <div id="syncStatus" style="margin-top:5px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;gap:5px;">
+    <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block;"></span>
+    <span id="syncText" style="color:rgba(255,255,255,0.6);">연결 중...</span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-btn active" id="tabManage"  onclick="switchTab('manage')">✏️ 일정 관리</div>
+  <div class="tab-btn"        id="tabTable"   onclick="switchTab('table')">📄 계획표</div>
+  <div class="tab-btn"        id="tabWelcome" onclick="switchTab('welcome')">🎤 환영사</div>
+</div>
+<div class="year-tabs" id="yearTabs"></div>
+
+<!-- ════════════════ 일정 관리 ════════════════ -->
+<div class="page active" id="pageManage">
+<div class="manage-inner">
+
+  <!-- 일반 강연 추가 -->
+  <div class="form-card">
+    <div class="form-hdr" onclick="toggleForm('mainForm','mainToggle')">
+      ✏️ 강연 일정 추가
+      <span class="ftoggle open" id="mainToggle">▲</span>
+    </div>
+    <div class="form-body" id="mainForm">
+      <div class="frow">
+        <div class="fg" style="flex:0 0 75px">
+          <label>골자 번호</label>
+          <input type="number" id="numInput" min="0" max="194" placeholder="예: 68" oninput="onNumInput()">
+          <div style="font-size:0.63rem;color:var(--text-muted);margin-top:2px;">※ 특별연설=00</div>
+        </div>
+        <div class="fg">
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            강연 제목 (자동)
+            <span onclick="toggleManualTitle()" id="manualToggleBtn"
+              style="font-size:0.65rem;color:var(--navy);background:#e8edf8;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;border:1px solid #b0bcd8;white-space:nowrap;">
+              ✏️ 직접 입력
+            </span>
+          </label>
+          <div class="tprev empty" id="titlePreview" style="cursor:default;">골자 번호 입력 시 자동 표시</div>
+          <input type="text" id="titleManual" placeholder="강연 제목 직접 입력..."
+            style="display:none;width:100%;margin-top:5px;padding:7px 9px;border:1.5px solid var(--gold);border-radius:6px;font-family:'Noto Serif KR',serif;font-size:0.84rem;color:var(--navy);background:#fffde7;outline:none;">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>일요일 날짜</label>
+          <div class="spick">
+            <span class="slbl">월</span>
+            <select id="monthSel" onchange="buildSundayOpts()">
+              <option value="">-- 월 --</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+            <select id="sundaySel" onchange="onSundaySelect()">
+              <option value="">-- 날짜 --</option>
+            </select>
+            <div class="ddisp hidden" id="dateDisp"></div>
+          </div>
+        </div>
+        <div class="fg" style="flex:0 0 100px">
+          <label>회중</label>
+          <input type="text" id="congInput" placeholder="예: 경주 안강">
+        </div>
+        <div class="fg" style="flex:0 0 78px">
+          <label>연사</label>
+          <input type="text" id="speakerInput" placeholder="이름">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>연락처</label>
+          <input type="text" id="phoneInput" placeholder="010-0000-0000">
+        </div>
+        <div class="fg">
+          <label>메모</label>
+          <input type="text" id="noteInput" placeholder="소개 형제 등">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            사회
+            <span onclick="toggleRotMode('chair')" id="chairModeBtn"
+              style="font-size:0.63rem;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;white-space:nowrap;">
+              🔄 윤번
+            </span>
+          </label>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <input type="text" id="chairInput" placeholder="자동 입력됨" style="flex:1;background:#f0f9ff;">
+            <button onclick="rotNext('chair')" title="다음 순번으로"
+              style="padding:5px 8px;border:1.5px solid #7dd3fc;border-radius:6px;background:#e0f2fe;color:#0369a1;font-size:0.75rem;cursor:pointer;white-space:nowrap;font-weight:700;">▶</button>
+          </div>
+          <div id="chairRotInfo" style="font-size:0.68rem;color:#0369a1;margin-top:3px;"></div>
+        </div>
+        <div class="fg">
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            낭독
+            <span onclick="toggleRotMode('reader')" id="readerModeBtn"
+              style="font-size:0.63rem;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;white-space:nowrap;">
+              🔄 윤번
+            </span>
+          </label>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <input type="text" id="readerInput" placeholder="자동 입력됨" style="flex:1;background:#f0f9ff;">
+            <button onclick="rotNext('reader')" title="다음 순번으로"
+              style="padding:5px 8px;border:1.5px solid #7dd3fc;border-radius:6px;background:#e0f2fe;color:#0369a1;font-size:0.75rem;cursor:pointer;white-space:nowrap;font-weight:700;">▶</button>
+          </div>
+          <div id="readerRotInfo" style="font-size:0.68rem;color:#0369a1;margin-top:3px;"></div>
+        </div>
+        <div class="fg">
+          <label>후대</label>
+          <input type="text" id="hostInput" placeholder="후대 담당자">
+        </div>
+      </div>
+      <div class="frow">
+        <button class="btn-add" onclick="addEntry()">+ 일정 추가</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 특별행 추가 (대회, 순회 등) -->
+  <div class="special-mgr">
+    <div class="special-mgr-hdr" onclick="toggleForm('specialForm','specialToggle')">
+      ⭐ 특별행 추가 (대회·순회 등)
+      <span class="ftoggle" id="specialToggle">▼</span>
+    </div>
+    <div class="special-mgr-body collapsed" id="specialForm">
+      <div class="frow">
+        <div class="fg">
+          <label>일요일 날짜</label>
+          <div class="spick">
+            <span class="slbl">월</span>
+            <select id="spMonthSel" onchange="buildSpSundayOpts()">
+              <option value="">-- 월 --</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+            <select id="spSundaySel">
+              <option value="">-- 날짜 --</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label>표시 텍스트 (예: 경 주 지 역 대 회)</label>
+          <input type="text" id="spText" placeholder="경 주 지 역 대 회">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg" style="flex:0 0 100px">
+          <label>회중/장소 (선택)</label>
+          <input type="text" id="spCong" placeholder="경산대회장">
+        </div>
+        <div class="fg" style="flex:0 0 90px">
+          <label>굵게 표시</label>
+          <select id="spBold">
+            <option value="1">예 (굵게)</option>
+            <option value="0">아니오</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <button class="btn-add" style="background:linear-gradient(135deg,#4a3728,#6b4f3a);" onclick="addSpecial()">+ 특별행 추가</button>
+      </div>
+      <!-- 특별행 목록 -->
+      <div class="special-list" id="specialList"></div>
+    </div>
+  </div>
+
+  <!-- 윤번 명단 관리 -->
+  <div class="form-card">
+    <div class="form-hdr" onclick="toggleForm('rotForm','rotToggle')">
+      🔄 사회·낭독 윤번 명단 관리
+      <span class="ftoggle" id="rotToggle">▼</span>
+    </div>
+    <div class="form-body collapsed" id="rotForm">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <!-- 사회 명단 -->
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:0.3px;">📋 사회 순번</div>
+          <div id="chairList" style="display:flex;flex-direction:column;gap:3px;margin-bottom:7px;"></div>
+          <div style="display:flex;gap:4px;">
+            <input type="text" id="chairAddInput" placeholder="이름 추가"
+              style="flex:1;padding:6px 8px;border:1.5px solid #ccc;border-radius:5px;font-size:0.8rem;outline:none;font-family:'Noto Sans KR',sans-serif;">
+            <button onclick="addRotMember('chair')"
+              style="padding:6px 10px;background:var(--navy);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.78rem;font-weight:700;">+</button>
+          </div>
+          <div style="margin-top:6px;font-size:0.68rem;color:var(--text-muted);">현재: <span id="chairCurName" style="font-weight:700;color:var(--navy);"></span></div>
+        </div>
+        <!-- 낭독 명단 -->
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:0.3px;">📋 낭독 순번</div>
+          <div id="readerList" style="display:flex;flex-direction:column;gap:3px;margin-bottom:7px;"></div>
+          <div style="display:flex;gap:4px;">
+            <input type="text" id="readerAddInput" placeholder="이름 추가"
+              style="flex:1;padding:6px 8px;border:1.5px solid #ccc;border-radius:5px;font-size:0.8rem;outline:none;font-family:'Noto Sans KR',sans-serif;">
+            <button onclick="addRotMember('reader')"
+              style="padding:6px 10px;background:var(--navy);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.78rem;font-weight:700;">+</button>
+          </div>
+          <div style="margin-top:6px;font-size:0.68rem;color:var(--text-muted);">현재: <span id="readerCurName" style="font-weight:700;color:var(--navy);"></span></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:0.7rem;color:var(--text-muted);border-top:1px dashed #ddd;padding-top:6px;">
+        💡 드래그로 순서 변경 · ✕로 삭제 · 현재 순번은 파란색 표시
+      </div>
+    </div>
+  </div>
+
+  <!-- 계획표 제목 편집 -->
+  <div class="form-card">
+    <div class="form-hdr" onclick="toggleForm('titleEditForm','titleEditToggle')">
+      📌 계획표 제목 편집
+      <span class="ftoggle" id="titleEditToggle">▼</span>
+    </div>
+    <div class="form-body collapsed" id="titleEditForm">
+      <div class="frow">
+        <div class="fg">
+          <label>제목 (연도는 자동 추가됨)</label>
+          <input type="text" id="planTitleInput"
+            placeholder="경주 동부 회중 공개 강연 계획표">
+        </div>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;">
+        💡 연도·반기는 자동으로 붙습니다. 예) <b>경주 동부 회중 공개 강연 계획표</b> → 계획표 제목에 <b>(2026년 상반기)</b> 자동 추가
+      </div>
+      <div class="frow">
+        <button class="btn-add" onclick="savePlanTitle()">제목 저장</button>
+        <button onclick="resetPlanTitle()" style="flex:0 0 80px;padding:9px;border:1.5px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:0.82rem;">초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 성구 설정 -->
+  <div class="form-card">
+    <div class="form-hdr" onclick="toggleForm('scriptureForm','scriptureToggle')">
+      📖 하단 성구 설정
+      <span class="ftoggle" id="scriptureToggle">▼</span>
+    </div>
+    <div class="form-body collapsed" id="scriptureForm">
+      <div class="frow">
+        <div class="fg">
+          <label>성구 내용</label>
+          <input type="text" id="scriptureInput" placeholder='(히브리서 13:2) "후대 베풀기를 잊지 마십시오"'>
+        </div>
+      </div>
+      <div class="frow">
+        <button class="btn-add" onclick="saveScripture()">성구 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 목록 -->
+  <div class="list-hdr">
+    <div class="list-title">📅 강연 일정</div>
+    <span class="list-cnt" id="entryCount">0건</span>
+  </div>
+  <div class="entry-list" id="entryList"></div>
+
+</div>
+</div>
+
+<!-- ════════════════ 계획표 탭 ════════════════ -->
+<div class="page" id="pageTable">
+<div class="tbl-page-inner">
+
+  <div class="tbl-controls">
+    <span class="ctrl-label">📄 공개강연 계획표</span>
+    <select class="year-sel2" id="tblYearSel" onchange="renderTable()">
+    </select>
+    <select class="half-sel" id="tblHalfSel" onchange="renderTable()">
+      <option value="all">전체</option>
+      <option value="1">상반기 (1~6월)</option>
+      <option value="2">하반기 (7~12월)</option>
+    </select>
+    <button class="btn-print" onclick="window.print()">🖨 인쇄</button>
+  </div>
+
+  <div class="plan-wrap">
+    <div class="plan-title-row" id="planTitleRow" onclick="editPlanTitle()" title="클릭하여 제목 편집">
+      경주 동부 회중 공개 강연 계획표 (2026년)
+    </div>
+    <table class="plan-table">
+      <colgroup>
+        <col class="col-date"><col class="col-cong"><col class="col-speak">
+        <col class="col-talk">
+        <col class="col-chair"><col class="col-read"><col class="col-host">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>일자</th>
+          <th>회중</th>
+          <th>연사</th>
+          <th>연&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;제</th>
+          <th>사회</th>
+          <th>낭독</th>
+          <th>후대</th>
+        </tr>
+      </thead>
+      <tbody id="planTbody"></tbody>
+    </table>
+    <div class="plan-footer" id="planFooter">
+      (히브리서 13:2) "후대 베풀기를 잊지 마십시오"
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ 환영사 탭 ════════════════ -->
+<div class="page" id="pageWelcome">
+<div class="manage-inner" style="max-width:540px;">
+
+  <!-- 자동 불러오기 카드 -->
+  <div class="form-card" style="border-color:#0369a1;">
+    <div class="form-hdr" style="background:linear-gradient(90deg,#0c4a6e,#0369a1);">
+      🔗 계획표에서 자동 불러오기
+    </div>
+    <div class="form-body">
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;">
+        사회자 이름을 입력하면 해당 주 강연 정보를 계획표에서 자동으로 가져옵니다.
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>사회자 이름</label>
+          <input type="text" id="wChairSearch" placeholder="예: 손태성" oninput="searchByChair()"
+            style="border-color:#7dd3fc;background:#f0f9ff;">
+        </div>
+        <div class="fg" style="flex:0 0 110px;">
+          <label>날짜 선택 (직접)</label>
+          <input type="date" id="wDateSearch" onchange="searchByDate()"
+            style="border-color:#7dd3fc;background:#f0f9ff;">
+        </div>
+      </div>
+      <!-- 검색 결과 목록 -->
+      <div id="wSearchResults" style="margin-top:8px;display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
+  <!-- 환영사 입력 폼 -->
+  <div class="form-card">
+    <div class="form-hdr" style="cursor:default;">
+      📋 공개 강연 환영사
+      <span id="wAutoTag" style="display:none;margin-left:auto;background:#dcfce7;color:#166534;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid #86efac;">✅ 자동입력</span>
+    </div>
+    <div class="form-body">
+
+      <div class="frow">
+        <div class="fg">
+          <label>◎ 환 영 사</label>
+          <input type="text" id="wWelcome" placeholder="환영사 담당자">
+        </div>
+        <div class="fg">
+          <label>◎ 기쁨으로 여호와께 노래하라</label>
+          <input type="text" id="wSong" placeholder="번호 또는 제목">
+        </div>
+      </div>
+
+      <div style="border:2px solid #34495e;border-radius:8px;padding:12px;margin:8px 0;background:#fcfcfc;">
+        <div style="font-weight:700;color:#34495e;font-size:0.82rem;margin-bottom:8px;">📢 공개 강연</div>
+        <div class="frow">
+          <div class="fg">
+            <label>강연 제목</label>
+            <input type="text" id="wTalkTitle" placeholder="강연 제목" style="font-family:'Noto Serif KR',serif;">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg" style="flex:0 0 110px;">
+            <label>회중</label>
+            <input type="text" id="wCong" placeholder="회중">
+          </div>
+          <div class="fg">
+            <label>연사 (형제)</label>
+            <input type="text" id="wSpeaker" placeholder="형제 이름">
+          </div>
+          <div class="fg" style="flex:0 0 90px;">
+            <label>사회자</label>
+            <input type="text" id="wChair" placeholder="사회자">
+          </div>
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fg">
+          <label>◎ 다음 주 강연 연제</label>
+          <input type="text" id="wNextTalk" placeholder="다음 주 제목" style="font-family:'Noto Serif KR',serif;">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>◎ 파수대 연구 사회자</label>
+          <input type="text" id="wWtConductor" placeholder="형제 이름">
+        </div>
+      </div>
+
+      <!-- 버튼 -->
+      <div class="frow" style="margin-top:4px;gap:8px;">
+        <button class="btn-add" onclick="saveWelcome()" style="flex:1;">💾 저장</button>
+        <button onclick="loadWelcome()" style="flex:1;padding:9px;border:1.5px solid var(--border);border-radius:6px;background:white;font-family:'Noto Sans KR',sans-serif;font-size:0.86rem;font-weight:700;cursor:pointer;">📂 불러오기</button>
+        <button onclick="resetWelcome()" style="flex:0 0 70px;padding:9px;border:1.5px solid #fca5a5;border-radius:6px;background:#fff8f8;font-family:'Noto Sans KR',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;color:#b91c1c;">초기화</button>
+      </div>
+      <div id="wStatus" style="text-align:center;font-size:0.8rem;color:#16a34a;min-height:1.2em;margin-top:6px;"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-head">✏️ 일정 수정</div>
+    <div class="modal-body">
+      <div class="fg"><label>골자 번호 <span style="font-size:0.65rem;color:var(--text-muted);">(특별연설=0)</span></label><input type="number" id="eNum" min="0" max="194" oninput="onENumInput()"></div>
+      <div class="fg">
+        <label style="display:flex;align-items:center;justify-content:space-between;">
+          강연 제목 (자동)
+          <span onclick="toggleEManualTitle()" id="eManualToggleBtn"
+            style="font-size:0.65rem;color:var(--navy);background:#e8edf8;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;border:1px solid #b0bcd8;white-space:nowrap;">
+            ✏️ 직접 입력
+          </span>
+        </label>
+        <div class="tprev empty" id="eTitlePreview" style="font-size:0.79rem;min-height:30px;">골자 번호 입력 시 자동 표시</div>
+        <input type="text" id="eTitleManual" placeholder="강연 제목 직접 입력..."
+          style="display:none;width:100%;margin-top:5px;padding:7px 9px;border:1.5px solid var(--gold);border-radius:6px;font-family:'Noto Serif KR',serif;font-size:0.83rem;color:var(--navy);background:#fffde7;outline:none;">
+      </div>
+      <div class="fg"><label>날짜</label><input type="date" id="eDate"></div>
+      <div class="fg"><label>회중</label><input type="text" id="eCong"></div>
+      <div class="fg"><label>연사</label><input type="text" id="eSpeaker"></div>
+      <div class="fg"><label>연락처</label><input type="text" id="ePhone"></div>
+      <div class="fg"><label>메모</label><input type="text" id="eNote"></div>
+      <div class="fg"><label>사회</label><input type="text" id="eChair" placeholder="사회자 이름"></div>
+      <div class="fg"><label>낭독</label><input type="text" id="eReader" placeholder="낭독자 이름"></div>
+      <div class="fg"><label>후대</label><input type="text" id="eHost" placeholder="후대 담당자"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ 강연 제목 DB ══ */
+const TALKS={
+  1:"당신은 하느님을 얼마나 잘 아는가?",2:"당신은 마지막 날의 생존자가 될 것인가?",
+  3:"여호와의 연합된 조직과 함께 전진하라",4:"우리 주위 세계에 나타나 있는 하느님에 대한 증거",
+  5:"행복한 가정생활을 위한 확실한 조언",6:"노아 시대의 홍수와 당신",
+  7:'"부드러운 자비의 아버지"를 본받으라',8:"자신을 위해서가 아니라 하느님의 뜻을 행하기 위하여 생활함",
+  9:"하느님의 말씀을 듣고 행하는 사람이 되십시오",10:"언제나 정직하게 말하고 행동하십시오",
+  11:"그리스도를 본받아 '세상에 속하지 마십시오'",12:"하느님은 권위에 대한 우리의 생각을 중요하게 여기신다",
+  13:"성과 결혼에 대한 하느님의 견해",14:"깨끗한 백성은 여호와께 영예가 된다",
+  15:'"모든 사람에게 선한 일을 하십시오"',16:"하느님과 계속 가까워지십시오",
+  17:"자신이 가진 모든 것으로 하느님께 영광을 돌리십시오",18:"여호와를 당신의 산성으로 삼으십시오",
+  19:"당신의 미래---어떻게 알 수 있는가?",20:"지금은 하느님께서 세상을 통치하실 때인가?",
+  21:"왕국 마련 안에서 자신의 위치를 소중히 여기십시오",22:"당신은 여호와의 마련을 통해 유익을 얻고 있는가?",
+  23:"우리의 삶에는 분명 목적이 있다",24:'당신은 "값진 진주"를 발견했는가?',
+  25:"세상의 영을 물리치십시오!",26:"하느님은 당신을 소중히 여기시는가?",
+  27:"결혼 생활의 행복한 출발",28:"결혼 생활에서 존중심과 사랑을 나타내십시오",
+  29:"자녀를 기르는 일에 따르는 책임과 축복",30:"가족 간의 의사소통을 개선하는 방법",
+  31:"당신은 영적 필요를 느끼는가?",32:"일상생활의 염려에 어떻게 대처할 수 있는가?",
+  33:"정의로운 세상---과연 올 것인가?",34:"당신은 생존을 위한 표를 받을 것인가?",
+  35:"당신도 영원히 살 수 있다!",36:"현 생명이 인생의 전부인가?",
+  37:"하느님의 길로 걷는 것이 정말 유익한가?",38:"세상 끝을 어떻게 생존할 수 있는가?",
+  39:"예수 그리스도---세상을 이기시는 분",40:"가까운 미래에 일어날 일",
+  41:"'그대로 서서 여호와의 구원을 보십시오'",42:"사랑이 증오를 이길 수 있는가?",
+  43:"하느님이 요구하시는 것---우리에게 언제나 유익하다",44:"예수의 가르침은 당신에게 어떤 유익을 줄 수 있는가?",
+  45:"생명에 이르는 길을 따르십시오",46:"끝까지 확신을 굳게 유지하십시오",
+  47:"(사용하지 않음)",48:"그리스도인들의 충성---시험받고 있다",
+  49:"이 땅이 과연 다시 깨끗해질 수 있는가?",50:"지혜로운 결정---어떻게 내릴 수 있는가?",
+  51:"진리가 당신의 생활을 변화시키고 있는가?",52:"당신의 하느님은 누구인가?",
+  53:"당신의 생각은 하느님의 생각과 일치한가?",54:"하느님과 그분의 약속에 대한 믿음을 길러 나가십시오",
+  55:"하느님 앞에서 어떻게 좋은 이름을 얻을 수 있는가?",56:"우리가 신뢰할 수 있는 지도자는 누구인가?",
+  57:"박해를 견디는 일",58:"누가 그리스도의 참제자인가?",59:"(사용하지 않음)",
+  60:"당신의 삶의 목적은 무엇인가?",61:"당신은 누구의 약속을 신뢰하는가?",
+  62:"어디에서 진정한 희망을 발견할 수 있는가?",63:"당신은 복음 전파의 영을 가지고 있는가?",
+  64:"당신은 '쾌락을 사랑하는 사람'이 될 것인가, '하느님을 사랑하는 사람'이 될 것인가?",
+  65:"분노가 가득한 세상에서 평화를 이루는 방법",66:"당신은 수확하는 일에 참여할 것인가?",
+  67:"여호와의 말씀과 그분의 창조물에 대해 묵상하십시오",68:'"계속 ··· 서로 기꺼이 용서하십시오"',
+  69:"왜 자기희생적인 사랑을 나타내야 하는가?",70:"왜 하느님을 신뢰해야 하는가?",
+  71:'"깨어 있으십시오"---왜 그리고 어떻게?',72:"사랑---참그리스도인 회중을 알아볼 수 있는 표",
+  73:'"지혜의 마음"을 얻으십시오',74:"여호와께서는 우리를 살펴보고 계신다",
+  75:"개인 생활에서 여호와의 통치권을 지지하십시오",76:"오늘날의 문제들에 대처하는 데 성서 원칙이 도움이 되는가?",
+  77:'"후대에 힘쓰십시오"',78:"기쁜 마음으로 여호와를 섬기십시오",
+  79:"당신은 하느님의 친구가 될 것인가, 세상의 친구가 될 것인가?",80:"과학과 성경---당신은 어느 쪽에 희망을 두는가?",
+  81:"누가 제자 삼는 일을 할 자격이 있는가?",82:"(사용하지 않음)",
+  83:"그리스도인은 십계명을 지켜야 하는가?",84:"당신은 이 세계의 운명을 피할 것인가?",
+  85:"폭력적인 세상에서 전해지고 있는 좋은 소식",86:"하느님께서 들으시는 기도",
+  87:"당신과 하느님과의 관계는 어떠한가?",88:"성경의 표준에 따라 생활해야 할 이유",
+  89:"진리에 목마른 사람은 오십시오!",90:"참생명을 얻기 위해 힘써 노력하십시오!",
+  91:"메시아의 임재와 그의 통치",92:"세상사에서 종교의 역할",
+  93:"자연재해---언제 사라질 것인가?",94:"참 종교는 인간 사회의 필요를 충족시켜 준다",
+  95:"영매술에 속지 마십시오!",96:"종교의 미래는 어떠할 것인가?",
+  97:"구부러진 세대 가운데서 나무랄 데 없는 상태를 유지함",98:'"이 세상의 장면은 변하고 있다"',
+  99:"성경을 신뢰할 수 있는 이유",100:"영원히 지속될 튼튼한 우정을 기르는 방법",
+  101:'여호와---"위대한 창조주"',102:'"예언의 말씀"에 주의를 기울이십시오',
+  103:"어떻게 진정한 기쁨을 누릴 수 있는가?",104:"부모 여러분---여러분은 내화 재료로 건축하고 있습니까?",
+  105:"모든 환난 중에 위로를 받음",106:"땅을 파멸시키는 일로 인해 오게 될 하느님의 보응",
+  107:"당신은 훈련받은 양심을 통해 유익을 얻고 있는가?",108:"당신도 확신을 가지고 미래를 맞이할 수 있다!",
+  109:"하느님의 왕국은 가까웠다",110:"하느님을 첫째 자리에 둘 때 가정 생활에서 성공할 수 있다",
+  111:"인류를 완전히 치료하는 일---어떻게 가능한가?",112:"(사용하지 않음)",
+  113:"청소년들은 어떻게 행복하고 성공적인 삶을 살 수 있는가?",114:"하느님의 경이로운 창조물들을 인식함",
+  115:"사탄의 교활한 행위로부터 자신을 지키십시오",116:"친구를 지혜롭게 선택하라!",
+  117:"선으로 악을 이기는 방법",118:"여호와의 관점에서 청소년을 바라봄",
+  119:"그리스도인은 세상과 분리되어 있다---그것이 유익한 이유",120:"지금 하느님의 통치권에 복종해야 하는 이유",
+  121:"세계적인 형제들로 이루어진 조직과 함께 대재난에서 생존하십시오",122:"(사용하지 않음)",
+  123:"(사용하지 않음)",124:"성서의 저자가 하느님임을 확신할 수 있는 근거",
+  125:"인류에게 대속물이 필요한 이유",126:"누가 구원을 받을 수 있는가?",
+  127:"사람이 죽으면 어떻게 되는가?",128:"지옥은 실제로 불타는 고초의 장소인가?",
+  129:"삼위일체는 성경의 가르침인가?",130:"땅은 영원히 있을 것이다",
+  131:"(사용하지 않음)",132:"부활---죽음에 대한 승리!",
+  133:"인간의 기원---무엇을 믿느냐가 중요한가?",134:"그리스도인은 안식일을 지켜야 하는가?",
+  135:"생명과 피의 신성함",136:"하느님은 숭배에서 형상을 사용하는 것을 승인하시는가?",
+  137:"성서의 기적들은 실제로 일어났는가?",138:"타락한 세상에서 건전한 정신으로 살라",
+  139:"과학 세계에서의 하느님의 지혜",140:"예수 그리스도는 실제로 누구인가?",
+  141:"인간 창조물이 신음하는 일---언제 끝날 것인가?",142:"여호와께 도피해야 하는 이유",
+  143:"모든 위로의 하느님을 신뢰하라",144:"그리스도의 지도를 받는 충성스러운 회중",
+  145:"누가 우리 하느님 여호와와 같은가?",146:"여호와를 찬양하기 위하여 교육을 사용하라",
+  147:"여호와의 구원의 능력을 신뢰하라",148:"당신은 생명에 대한 하느님의 견해를 가지고 있는가?",
+  149:"당신은 하느님과 함께 걷고 있는가?",150:"이 세상은 멸망될 것인가?",
+  151:'여호와는 자신의 백성을 위한 "안전한 산성"이시다',152:"실제로 있을 아마겟돈---왜? 언제?",
+  153:'"외경스러운 날"을 가깝게 여기십시오!',154:"저울에 달린 인간 통치",
+  155:"바빌론의 심판 시간은 도래하였는가?",156:"심판 날---두려워할 때인가, 아니면 희망을 가질 때인가?",
+  157:"참 그리스도인들이 하느님의 가르침을 단장하는 방법",158:"용기를 내어 여호와를 신뢰하여라",
+  159:"위험한 세상에서 안전을 찾는 일",160:"당신의 그리스도인 신분을 지키라!",
+  161:"예수께서는 왜 고난을 겪고 죽으셨는가?",162:"어둠의 세상으로부터의 구출",
+  163:"왜 참 하느님을 두려워해야 하는가?",164:"하느님은 지금도 통제력을 행사하시는가?",
+  165:"당신은 누구의 가치관을 소중히 여기는가?",166:"진정한 믿음이란 무엇이며 어떻게 나타낼 수 있는가?",
+  167:"무분별한 세상에서 지혜롭게 행동하라",168:"이 혼란스러운 세상에서도 안전을 느낄 수 있다!",
+  169:"왜 성서의 인도를 받아야 하는가?",170:"누가 인류를 통치할 자격이 있는가?",
+  171:"당신도 지금부터 영원히 평화로운 삶을 누릴 수 있다!",172:"우리는 하느님 앞에서 어떤 신분을 가지고 있는가?",
+  173:"하느님의 관점에서 참종교가 과연 있는가?",174:"하느님의 신세계---누가 들어갈 수 있는가?",
+  175:"성서가 하느님의 말씀이라는 증거는 무엇인가?",176:"진정한 평화와 안전---언제 있을 것인가?",
+  177:"고난의 때에 어디에서 도움을 얻을 수 있는가?",178:"충절의 길로 걸으라",
+  179:"세상의 환상적인 것을 멀리하고, 왕국의 실제적인 것을 추구하라",
+  180:"부활 희망이 우리 자신에게 실제적이어야 하는 이유",181:"끝은 우리가 생각하는 것보다 가까운가?",
+  182:"하느님의 왕국이 지금 우리를 위해 하고 있는 일",183:"무가치한 것들을 보지 말고 물리치십시오!",
+  184:"죽으면 모든 것이 끝나는가?",185:"진리가 우리의 생활에 영향을 미치는가?",
+  186:"하느님의 행복한 백성과 연합하십시오",187:"사랑의 하느님께서 왜 악을 허용하시는가?",
+  188:"당신은 여호와께 확신을 두고 있는가?",189:"하느님과 함께 걸으면 지금부터 영원히 축복을 받는다",
+  190:"하느님께서 약속하신 완전하고 행복한 가정",191:"사랑과 믿음이 세상을 이기는 방법",
+  192:"당신은 영원한 생명에 이르는 길을 걷고 있는가?",193:"세계적 고난의 때에 있을 구출",
+  194:"경건한 지혜는 우리에게 어떻게 유익을 주는가?"
+};
+
+const MKO=['','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+/* ── 연도 동적 생성 ──
+   - 현재 연도부터 +3년까지 자동 표시
+   - 과거 연도는 데이터가 있을 때만 포함
+   - 저장된 데이터에 미래 연도가 있으면 자동 추가
+*/
+function buildYearRange(savedEntries){
+  const thisYear = new Date().getFullYear();
+  // 기본: 현재 ~ +3년
+  const set = new Set();
+  for(let y=thisYear; y<=thisYear+3; y++) set.add(y);
+  // 데이터 있는 연도도 추가 (과거 포함)
+  if(savedEntries){
+    Object.keys(savedEntries).forEach(y=>{
+      const yi=parseInt(y);
+      if((savedEntries[yi]||[]).length>0) set.add(yi);
+    });
+  }
+  return [...set].sort((a,b)=>a-b);
+}
+
+let YEARS = buildYearRange(null);
+let curYear = new Date().getFullYear();
+
+/* ══ 윤번 데이터 ══
+   rotation.chair = { members:['강대정','오덕화',...], idx:0, mode:'auto' }
+   rotation.reader = { members:[...], idx:0, mode:'auto' }
+   mode: 'auto' | 'manual'
+*/
+const INIT_ROT = {
+  chair: {
+    members:['강대정','오덕화','백문호','이승구','손태성','이학만','변우원','박승동','오민현','김철홍'],
+    idx: 0, mode:'auto'
+  },
+  reader: {
+    members:['차규호','이희수','김철홍','박동혁','오민현','강대정','김성연'],
+    idx: 0, mode:'auto'
+  }
+};
+let rotation = { chair:{members:[],idx:0,mode:'auto'}, reader:{members:[],idx:0,mode:'auto'} };
+
+const ROT_KEY = 'kjEast_rot_v2';
+
+/* ── 데이터 구조 ──
+  entries[year] = [ {type:'talk', date, num, congregation, speaker, phone, note} ]
+                | [ {type:'special', date, text, congregation, bold} ]
+  scripture[year] = string
+*/
+const INIT_ENTRIES={
+  2026:[
+    // ── 상반기 (이미지에서 읽음) ──
+    {type:'talk',date:"2026-03-08",num:128,congregation:"부산 만미",   speaker:"김훈구", phone:"", note:"", chair:"강대정", reader:"차규호", host:"윤정우"},
+    {type:'talk',date:"2026-03-15",num:60, congregation:"경주러시아어",speaker:"석정민", phone:"", note:"", chair:"오덕화", reader:"이희수", host:"이승구"},
+    {type:'talk',date:"2026-03-22",num:94, congregation:"서울 시대문", speaker:"박창수", phone:"", note:"", chair:"백문호", reader:"김철홍", host:"윤정우"},
+    {type:'talk',date:"2026-03-29",num:8,  congregation:"경주 동부",   speaker:"윤정우", phone:"", note:"특별강연: 누가 이 땅을 회복시킬 것인가?", chair:"이승구", reader:"박동혁", host:"김성연"},
+    {type:'talk',date:"2026-04-05",num:68, congregation:"경주 안강",   speaker:"옥정욱", phone:"010-6668-0275", note:"", chair:"손태성", reader:"오민현", host:"김성연"},
+    {type:'special',date:"2026-04-12",text:"순 회 대 회",congregation:"", bold:true},
+    {type:'talk',date:"2026-04-19",num:6,  congregation:"경주 동부",   speaker:"김성연", phone:"", note:"", chair:"이학만", reader:"차규호", host:"백문호"},
+    {type:'talk',date:"2026-04-26",num:16, congregation:"화성 남양",   speaker:"김성수", phone:"010-6828-1935", note:"경주남부 임정석형제 소개", chair:"변우원", reader:"김성연", host:"이재경"},
+    {type:'talk',date:"2026-05-03",num:8,  congregation:"경주 동부",   speaker:"오덕화", phone:"", note:"", chair:"박승동", reader:"이희수", host:"이동건"},
+    {type:'talk',date:"2026-05-10",num:105,congregation:"포항 구룡포", speaker:"박대영", phone:"010-9970-7976", note:"", chair:"이학만", reader:"김철홍", host:"이재경"},
+    {type:'talk',date:"2026-05-17",num:26, congregation:"홍항홍해동부",speaker:"김민규", phone:"010-9282-6368", note:"", chair:"백문호", reader:"박동혁", host:"박승동"},
+    {type:'talk',date:"2026-05-24",num:40, congregation:"경주 중앙",   speaker:"장득구", phone:"010-4261-5111", note:"", chair:"오덕화", reader:"오민현", host:"변우원"},
+    {type:'talk',date:"2026-05-31",num:144,congregation:"아산 탕정",   speaker:"우준호", phone:"010-5420-0599", note:"이승구형제 소개", chair:"김철홍", reader:"강대정", host:"이승구"},
+    {type:'talk',date:"2026-06-07",num:121,congregation:"경주 동부",   speaker:"강대정", phone:"", note:"", chair:"오민현", reader:"차규호", host:"손태성"},
+    {type:'talk',date:"2026-06-14",num:9,  congregation:"전주 팔복",   speaker:"천재희", phone:"010-3426-3114", note:"경주남부 임정석형제 소개", chair:"강대정", reader:"이희수", host:"백문호"},
+    {type:'talk',date:"2026-06-21",num:100,congregation:"포항 죽도",   speaker:"김원형", phone:"010-3040-3044", note:"", chair:"이승구", reader:"김철홍", host:"이재경"},
+    {type:'talk',date:"2026-06-28",num:0,  congregation:"",            speaker:"",       phone:"", note:"", chair:"", reader:"", host:""},
+    // ── 하반기 ──
+    {type:'talk',date:"2026-07-05",num:65, congregation:"경주 북부",   speaker:"김진국", phone:"010-6212-0960", note:"", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-07-12",num:160,congregation:"포항 구룡포", speaker:"김태원", phone:"010-5788-1509", note:"", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-07-19",num:0,  congregation:"",            speaker:"",       phone:"", note:"", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-08-30",num:77, congregation:"동탄 동부",   speaker:"이태민", phone:"010-9899-0849", note:"박승동형제 소개", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-09-06",num:7,  congregation:"천안 병천",   speaker:"조병우", phone:"010-6689-1914", note:"백문호형제 소개", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-10-11",num:158,congregation:"용인 백암",   speaker:"김도의", phone:"010-7495-7707", note:"박승동형제 소개", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-12-06",num:37, congregation:"안산 중앙",   speaker:"김양일", phone:"010-8822-0679", note:"이학만형제 소개", chair:"", reader:"", host:""},
+    {type:'talk',date:"2026-12-13",num:48, congregation:"포항 대송",   speaker:"권천수", phone:"010-2876-6203", note:"", chair:"", reader:"", host:""},
+  ],
+  2027:[
+    {type:'talk',date:"2027-08-29",num:95, congregation:"고령",        speaker:"윤영진", phone:"010-3330-9933", note:"박승동형제 소개", chair:"", reader:"", host:""},
+  ]
+};
+const INIT_SCRIPTURE={
+  2026:'(히브리서 13:2) "후대 베풀기를 잊지 마십시오"',
+  2027:'(히브리서 13:2) "후대 베풀기를 잊지 마십시오"'
+};
+
+let entries={};
+let scripture={};
+let planTitle={}; // planTitle[year] = 커스텀 제목 (연도·반기 제외한 앞부분)
+const DEFAULT_PLAN_TITLE='경주 동부 회중 공개 강연 계획표';
+
+/* ══════════════════════════════════════════
+   Firebase 설정 & 실시간 동기화
+══════════════════════════════════════════ */
+const FB_CONFIG = {
+  apiKey:            "AIzaSyD2tB7NErZkqD3d990aGE7p_IKiay1jQs8",
+  authDomain:        "kjeast-talks.firebaseapp.com",
+  projectId:         "kjeast-talks",
+  storageBucket:     "kjeast-talks.firebasestorage.app",
+  messagingSenderId: "684189897535",
+  appId:             "1:684189897535:web:bc5bcb13b520399b45398a"
+};
+
+const SK     = 'kjEast_v8';
+let   db     = null;
+let   fbOK   = false;
+let   _unsub = null;
+let   _unsubRot = null;
+let   _saveTimer = null;
+
+function initYearData(y){
+  if(!entries[y])    entries[y]    = [];
+  if(!scripture[y])  scripture[y]  = '(히브리서 13:2) "후대 베풀기를 잊지 마십시오"';
+  if(!planTitle[y])  planTitle[y]  = '';
+}
+
+function setSyncStatus(state){
+  const dot  = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  if(!dot||!text) return;
+  const M = {
+    connecting: ['#94a3b8','연결 중...'],
+    online    : ['#22c55e','🟢 실시간 동기화 중'],
+    saving    : ['#f59e0b','⏫ 저장 중...'],
+    saved     : ['#22c55e','✅ 저장 완료'],
+    offline   : ['#ef4444','📴 오프라인 (로컬 저장)'],
+    error     : ['#ef4444','⚠️ 동기화 오류'],
+  };
+  const [col, lbl] = M[state] || M.connecting;
+  dot.style.background = col;
+  text.textContent     = lbl;
+  text.style.color     = state==='offline' ? '#fca5a5' : 'rgba(255,255,255,0.9)';
+}
+
+/* ── 로컬 저장 (항상 백업) ── */
+function saveLocal(){
+  try{
+    localStorage.setItem(SK,      JSON.stringify({entries, scripture, planTitle}));
+    localStorage.setItem(ROT_KEY, JSON.stringify(rotation));
+  }catch(e){}
+}
+
+/* ── Firestore 저장 (디바운스 600ms) ── */
+function save(){
+  saveLocal();
+  if(!fbOK){ setSyncStatus('offline'); return; }
+  clearTimeout(_saveTimer);
+  setSyncStatus('saving');
+  _saveTimer = setTimeout(()=>{
+    const batch = db.batch();
+    batch.set(db.collection('kongae').doc('main'), {
+      entries, scripture, planTitle,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(db.collection('kongae').doc('rotation'), {
+      data: rotation,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.commit()
+      .then(()=>setSyncStatus('saved'))
+      .catch(err=>{ console.error(err); setSyncStatus('error'); saveLocal(); });
+  }, 600);
+}
+
+/* ── Firestore 데이터 → 앱에 적용 ── */
+function applyData(p){
+  if(!p) return;
+  const rebuilt = buildYearRange(p.entries||{});
+  rebuilt.forEach(y=>{
+    initYearData(y);
+    if(p.entries  &&p.entries[y]  )               entries[y]   = p.entries[y];
+    if(p.scripture&&p.scripture[y]!==undefined)   scripture[y] = p.scripture[y];
+    if(p.planTitle&&p.planTitle[y]!==undefined)   planTitle[y] = p.planTitle[y];
+    if(!YEARS.includes(y)) YEARS.push(y);
+  });
+  YEARS.sort((a,b)=>a-b);
+  if(!YEARS.includes(curYear)) curYear = YEARS[YEARS.length-1]||new Date().getFullYear();
+  saveLocal();
+  refreshUI();
+}
+
+/* ── 실시간 리스너 ── */
+function startListening(){
+  if(!fbOK) return;
+  _unsub = db.collection('kongae').doc('main').onSnapshot(snap=>{
+    if(snap.exists){ setSyncStatus('online'); applyData(snap.data()); }
+  }, err=>{ console.error(err); setSyncStatus('error'); });
+
+  _unsubRot = db.collection('kongae').doc('rotation').onSnapshot(snap=>{
+    if(snap.exists && snap.data().data){
+      rotation = snap.data().data;
+      saveLocal();
+      renderRotList('chair'); renderRotList('reader'); fillAutoRot();
+    }
+  }, err=>{ console.error(err); });
+}
+
+/* ── 초기 로드 ── */
+function load(){
+  /* 1) 로컬 캐시로 먼저 빠르게 화면 표시 */
+  try{
+    const raw = localStorage.getItem(SK);
+    if(raw){
+      const p = JSON.parse(raw);
+      YEARS = buildYearRange(p.entries||{});
+      YEARS.forEach(y=>{
+        initYearData(y);
+        if(p.entries  &&p.entries[y])               entries[y]   = p.entries[y];
+        if(p.scripture&&p.scripture[y]!==undefined) scripture[y] = p.scripture[y];
+        if(p.planTitle&&p.planTitle[y]!==undefined) planTitle[y] = p.planTitle[y];
+      });
+      if(p.entries){
+        Object.keys(p.entries).forEach(yk=>{
+          const yi=parseInt(yk);
+          if(!entries[yi]){ entries[yi]=p.entries[yi]; if(!YEARS.includes(yi)) YEARS.push(yi); }
+        });
+        YEARS.sort((a,b)=>a-b);
+      }
+    } else {
+      YEARS = buildYearRange(INIT_ENTRIES);
+      YEARS.forEach(y=>initYearData(y));
+      Object.keys(INIT_ENTRIES).forEach(y=>{ entries[parseInt(y)]=[...INIT_ENTRIES[parseInt(y)]]; });
+      Object.keys(INIT_SCRIPTURE).forEach(y=>{ scripture[parseInt(y)]=INIT_SCRIPTURE[parseInt(y)]; });
+    }
+    if(!YEARS.includes(curYear)) curYear = YEARS[YEARS.length-1]||new Date().getFullYear();
+    const rraw = localStorage.getItem(ROT_KEY);
+    if(rraw){ try{ rotation=JSON.parse(rraw); }catch(e){} }
+    else{ rotation.chair={...INIT_ROT.chair,members:[...INIT_ROT.chair.members]}; rotation.reader={...INIT_ROT.reader,members:[...INIT_ROT.reader.members]}; }
+  }catch(e){
+    YEARS = buildYearRange(INIT_ENTRIES);
+    YEARS.forEach(y=>initYearData(y));
+    Object.keys(INIT_ENTRIES).forEach(y=>{ entries[parseInt(y)]=[...INIT_ENTRIES[parseInt(y)]]; });
+    Object.keys(INIT_SCRIPTURE).forEach(y=>{ scripture[parseInt(y)]=INIT_SCRIPTURE[parseInt(y)]; });
+    rotation.chair={...INIT_ROT.chair,members:[...INIT_ROT.chair.members]};
+    rotation.reader={...INIT_ROT.reader,members:[...INIT_ROT.reader.members]};
+  }
+
+  /* 2) Firebase 연결 */
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    db    = firebase.firestore();
+    fbOK  = true;
+    setSyncStatus('connecting');
+    /* 최초 1회 Firestore에서 불러온 뒤 실시간 리스너 시작 */
+    db.collection('kongae').doc('main').get()
+      .then(snap=>{ if(snap.exists) applyData(snap.data()); startListening(); })
+      .catch(()=>{ setSyncStatus('offline'); startListening(); });
+  }catch(e){
+    console.warn('Firebase 연결 실패, 로컬 전용 모드:', e.message);
+    fbOK = false;
+    setSyncStatus('offline');
+  }
+}
+
+/* ══ 윤번 함수들 ══ */
+
+// 현재 순번 이름 반환 (advance=true면 idx 증가)
+function getRotName(role, advance){
+  const r=rotation[role];
+  if(!r.members.length) return '';
+  const name=r.members[r.idx % r.members.length];
+  if(advance){ r.idx=(r.idx+1)%r.members.length; save(); }
+  return name;
+}
+
+// 폼 자동채우기 (일정 추가 폼 열릴 때 / 날짜 선택 시 호출)
+function fillAutoRot(){
+  ['chair','reader'].forEach(role=>{
+    const r=rotation[role];
+    if(r.mode==='auto' && r.members.length){
+      const inp=document.getElementById(role+'Input');
+      inp.value=r.members[r.idx % r.members.length];
+      inp.style.background='#f0f9ff';
+      updateRotInfo(role);
+    }
+  });
+}
+
+// 다음 순번 버튼 (▶)
+function rotNext(role){
+  const r=rotation[role];
+  if(!r.members.length) return;
+  r.idx=(r.idx+1)%r.members.length;
+  save();
+  const inp=document.getElementById(role+'Input');
+  inp.value=r.members[r.idx];
+  updateRotInfo(role);
+}
+
+// 자동/수동 토글
+function toggleRotMode(role){
+  const r=rotation[role];
+  const btn=document.getElementById(role+'ModeBtn');
+  const inp=document.getElementById(role+'Input');
+  if(r.mode==='auto'){
+    r.mode='manual';
+    btn.textContent='✏️ 수동';
+    btn.style.background='#fef9c3';
+    btn.style.borderColor='#d4a843';
+    btn.style.color='#92400e';
+    inp.style.background='#fffde7';
+    inp.readOnly=false;
+    inp.placeholder='직접 입력';
+    inp.focus();
+  } else {
+    r.mode='auto';
+    btn.textContent='🔄 윤번';
+    btn.style.background='#e0f2fe';
+    btn.style.borderColor='#7dd3fc';
+    btn.style.color='#0369a1';
+    inp.style.background='#f0f9ff';
+    inp.readOnly=false;
+    fillAutoRot();
+  }
+  save();
+}
+
+// 순번 정보 표시
+function updateRotInfo(role){
+  const r=rotation[role];
+  const el=document.getElementById(role+'RotInfo');
+  if(!el||!r.members.length){if(el)el.textContent='';return;}
+  const cur=r.idx%r.members.length;
+  const next=(cur+1)%r.members.length;
+  el.innerHTML=`순번 ${cur+1}/${r.members.length} · 다음: <b>${r.members[next]}</b>`;
+}
+
+// 윤번 명단 렌더
+function renderRotList(role){
+  const r=rotation[role];
+  const el=document.getElementById(role+'List');
+  const curEl=document.getElementById(role+'CurName');
+  if(curEl) curEl.textContent=r.members.length ? r.members[r.idx%r.members.length] : '(없음)';
+  if(!el) return;
+  el.innerHTML=r.members.map((name,i)=>{
+    const isCur=(i===r.idx%r.members.length);
+    return`<div draggable="true" ondragstart="dragStart(event,'${role}',${i})" ondragover="event.preventDefault()" ondrop="dragDrop(event,'${role}',${i})"
+      style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:5px;font-size:0.8rem;cursor:grab;
+        background:${isCur?'#dbeafe':'#f8fafc'};border:1px solid ${isCur?'#93c5fd':'#e2e8f0'};color:${isCur?'#1e40af':'#334155'};">
+      <span style="font-size:0.65rem;color:#94a3b8;min-width:16px;">${i+1}</span>
+      ${isCur?'<span style="font-size:0.7rem;">▶</span>':'<span style="font-size:0.7rem;color:#cbd5e1;">○</span>'}
+      <span style="flex:1;font-weight:${isCur?'700':'400'};">${name}</span>
+      <button onclick="setRotIdx('${role}',${i})" title="여기서부터 시작"
+        style="font-size:0.65rem;padding:1px 5px;border:1px solid #cbd5e1;border-radius:3px;background:white;cursor:pointer;color:#64748b;">시작</button>
+      <button onclick="delRotMember('${role}',${i})"
+        style="background:none;border:none;cursor:pointer;color:#f87171;font-size:0.85rem;padding:0 2px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// 순번 직접 지정
+function setRotIdx(role,i){
+  rotation[role].idx=i;
+  save();
+  renderRotList(role);
+  fillAutoRot();
+}
+
+// 멤버 추가
+function addRotMember(role){
+  const inp=document.getElementById(role+'AddInput');
+  const name=inp.value.trim();
+  if(!name) return;
+  rotation[role].members.push(name);
+  inp.value='';
+  save();
+  renderRotList(role);
+  fillAutoRot();
+}
+
+// 멤버 삭제
+function delRotMember(role,i){
+  const r=rotation[role];
+  r.members.splice(i,1);
+  if(r.idx>=r.members.length) r.idx=Math.max(0,r.members.length-1);
+  save();
+  renderRotList(role);
+  fillAutoRot();
+}
+
+// 드래그 순서 변경
+let dragSrc={role:'',idx:-1};
+function dragStart(e,role,i){ dragSrc={role,idx:i}; e.dataTransfer.effectAllowed='move'; }
+function dragDrop(e,role,i){
+  e.preventDefault();
+  if(dragSrc.role!==role||dragSrc.idx===i) return;
+  const r=rotation[role];
+  const moved=r.members.splice(dragSrc.idx,1)[0];
+  r.members.splice(i,0,moved);
+  // idx 재조정
+  if(r.idx===dragSrc.idx) r.idx=i;
+  else if(dragSrc.idx<r.idx&&i>=r.idx) r.idx--;
+  else if(dragSrc.idx>r.idx&&i<=r.idx) r.idx++;
+  save();
+  renderRotList(role);
+  fillAutoRot();
+}
+
+/* ── 탭 전환 ── */
+function switchTab(tab){
+  ['manage','table','welcome'].forEach(t=>{
+    const btn=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    const pg =document.getElementById('page'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn) btn.classList.toggle('active',t===tab);
+    if(pg)  pg.classList.toggle('active',t===tab);
+  });
+  document.getElementById('yearTabs').style.display=(tab==='manage')?'flex':'none';
+  if(tab==='table'){
+    buildYearTabs();
+    const _ts=document.getElementById('tblYearSel');
+    if(_ts){ _ts.value=String(curYear); if(!_ts.value&&_ts.options.length) _ts.selectedIndex=0; }
+    renderTable();
+  }
+  if(tab==='welcome'){
+    // 오늘 날짜 기준 이번 주 일요일로 자동 검색
+    const today=new Date();
+    const day=today.getDay();
+    const sun=new Date(today);
+    sun.setDate(today.getDate()-day); // 이번 주 일요일
+    const dateStr=sun.toISOString().split('T')[0];
+    document.getElementById('wDateSearch').value=dateStr;
+    searchByDate();
+    loadWelcome();
+  }
+}
+
+/* ── 연도탭 & select 갱신 ── */
+function buildYearTabs(){
+  const thisYear=new Date().getFullYear();
+  // 현재 연도 이전이고 데이터 없으면 숨김
+  const visible=YEARS.filter(y=>{
+    if(y>=thisYear) return true;            // 현재 이후: 항상 표시
+    return (entries[y]||[]).length>0;       // 과거: 데이터 있을 때만 표시
+  });
+  document.getElementById('yearTabs').innerHTML=visible.map(y=>`
+    <div class="year-tab ${y===curYear?'active':''}" onclick="switchYear(${y})">${y}년</div>
+  `).join('');
+  // 계획표 select도 같이 갱신
+  const sel=document.getElementById('tblYearSel');
+  if(sel){
+    sel.innerHTML=visible.map(y=>`<option value="${y}"${y===curYear?' selected':''}>${y}년</option>`).join('');
+  }
+}
+/* 새 연도 자동 추가 (일정 추가 시 해당 연도가 없으면 생성) */
+function ensureYear(y){
+  if(!YEARS.includes(y)){
+    YEARS.push(y);
+    YEARS.sort((a,b)=>a-b);
+    initYearData(y);
+  }
+}
+function switchYear(y){
+  curYear=y;
+  buildYearTabs();
+  buildSundayOpts();
+  renderList();
+  renderSpecialList();
+  syncTitleInput();
+  document.getElementById('scriptureInput').value=scripture[curYear]||'';
+}
+
+/* ── 폼 접기 ── */
+function toggleForm(bodyId,togId){
+  const b=document.getElementById(bodyId),t=document.getElementById(togId);
+  const isOpen=!b.classList.contains('collapsed');
+  b.classList.toggle('collapsed',isOpen);
+  t.textContent=isOpen?'▼':'▲';
+  t.classList.toggle('open',!isOpen);
+}
+
+/* ── 일요일 목록 ── */
+function getSundays(y,m){
+  const s=[];const d=new Date(y,m-1,1);
+  while(d.getMonth()===m-1){if(d.getDay()===0)s.push(new Date(d));d.setDate(d.getDate()+1);}
+  return s;
+}
+function fillSundaySelect(selId,year,month){
+  const sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">-- 날짜 --</option>';
+  if(!month)return;
+  getSundays(year,month).forEach(d=>{
+    const v=`${year}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    sel.innerHTML+=`<option value="${v}">${d.getDate()}일 (일요일)</option>`;
+  });
+}
+function buildSundayOpts(){
+  const m=parseInt(document.getElementById('monthSel').value);
+  fillSundaySelect('sundaySel',curYear,m);
+  const el=document.getElementById('dateDisp');
+  el.classList.add('hidden');
+}
+function onSundaySelect(){
+  const v=document.getElementById('sundaySel').value;
+  const el=document.getElementById('dateDisp');
+  if(!v){el.classList.add('hidden');return;}
+  const d=new Date(v+'T00:00:00');
+  el.textContent=`✅ ${curYear}년 ${d.getMonth()+1}월 ${d.getDate()}일 (일요일)`;
+  el.classList.remove('hidden');
+  fillAutoRot(); // 날짜 선택 시 윤번 자동 채우기
+}
+function buildSpSundayOpts(){
+  const m=parseInt(document.getElementById('spMonthSel').value);
+  fillSundaySelect('spSundaySel',curYear,m);
+}
+
+/* ── 수동 제목 토글 ── */
+let manualMode = false;
+let eManualMode = false;
+
+function toggleManualTitle(){
+  manualMode = !manualMode;
+  const btn = document.getElementById('manualToggleBtn');
+  const prev = document.getElementById('titlePreview');
+  const inp = document.getElementById('titleManual');
+  if(manualMode){
+    btn.textContent = '🔄 자동으로';
+    btn.style.background = '#fef9c3';
+    btn.style.borderColor = '#d4a843';
+    prev.style.display = 'none';
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    btn.textContent = '✏️ 직접 입력';
+    btn.style.background = '#e8edf8';
+    btn.style.borderColor = '#b0bcd8';
+    prev.style.display = 'flex';
+    inp.style.display = 'none';
+    inp.value = '';
+    onNumInput(); // 자동 제목 다시 표시
+  }
+}
+
+function toggleEManualTitle(){
+  eManualMode = !eManualMode;
+  const btn = document.getElementById('eManualToggleBtn');
+  const prev = document.getElementById('eTitlePreview');
+  const inp = document.getElementById('eTitleManual');
+  if(eManualMode){
+    btn.textContent = '🔄 자동으로';
+    btn.style.background = '#fef9c3';
+    btn.style.borderColor = '#d4a843';
+    prev.style.display = 'none';
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    btn.textContent = '✏️ 직접 입력';
+    btn.style.background = '#e8edf8';
+    btn.style.borderColor = '#b0bcd8';
+    prev.style.display = 'flex';
+    inp.style.display = 'none';
+    inp.value = '';
+    onENumInput();
+  }
+}
+
+/* ── 골자 번호 자동 ── */
+function onNumInput(){upPrev('numInput','titlePreview', true);}
+function onENumInput(){upPrev('eNum','eTitlePreview', false);}
+
+/* 경과 기간 텍스트 반환 (예: "1년 3개월 전") */
+function agoText(dateStr){
+  const past=new Date(dateStr+'T00:00:00');
+  const now=new Date();
+  let y=now.getFullYear()-past.getFullYear();
+  let m=now.getMonth()-past.getMonth();
+  if(m<0){y--;m+=12;}
+  // 일 수 보정
+  if(now.getDate()<past.getDate()) m--;
+  if(m<0){y--;m+=12;}
+  if(y===0&&m===0) return '이번 달';
+  let parts=[];
+  if(y>0) parts.push(`${y}년`);
+  if(m>0) parts.push(`${m}개월`);
+  return parts.join(' ')+' 전';
+}
+
+function upPrev(iid, pid, checkDup){
+  const raw=document.getElementById(iid).value;
+  const n=parseInt(raw);
+  const el=document.getElementById(pid);
+
+  // ── 0번: 특별 연설 ──
+  if(raw!==''&&n===0){
+    el.innerHTML=`
+      <span style="display:block;font-size:0.82rem;color:#7c3aed;font-weight:700;font-family:'Noto Sans KR',sans-serif;">
+        ⭐ 특별 연설 — 제목을 직접 입력하세요
+      </span>
+      <span style="display:block;font-size:0.73rem;color:#6b7280;font-family:'Noto Sans KR',sans-serif;margin-top:2px;">
+        골자 번호 없이 제목만 계획표에 표시됩니다
+      </span>`;
+    el.className='tprev';
+    el.style.background='#f5f3ff';
+    el.style.borderColor='#a78bfa';
+    // 자동으로 직접 입력 모드 활성화 (추가 폼만)
+    if(checkDup && !manualMode){
+      toggleManualTitle();
+    }
+    return;
+  }
+
+  if(!raw||!n||!TALKS[n]){
+    el.innerHTML=raw?`골자 ${n}번은 없습니다`:'골자 번호 입력 시 자동 표시';
+    el.className='tprev empty';
+    el.style.background=''; el.style.borderColor='';
+    return;
+  }
+
+  // 현재 연도 중복 목록
+  const dupList = checkDup
+    ? entries[curYear].filter(e=>e.type==='talk' && e.num===n && e.num!==0)
+    : [];
+
+  // 전체 연도 과거 연설 이력 (저장된 모든 연도)
+  const histList = [];
+  Object.keys(entries).forEach(y=>{
+    (entries[parseInt(y)]||[]).forEach(e=>{
+      if(e.type==='talk' && e.num===n && e.num!==0){
+        histList.push({date:e.date, congregation:e.congregation||'', speaker:e.speaker||'', year:parseInt(y)});
+      }
+    });
+  });
+  histList.sort((a,b)=>b.date.localeCompare(a.date)); // 최신순
+
+  // 이력 HTML 생성
+  let histHtml='';
+  if(histList.length>0){
+    const rows=histList.map(h=>{
+      const d=new Date(h.date+'T00:00:00');
+      const dateStr=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+      const ago=agoText(h.date);
+      return `<span style="display:flex;align-items:center;gap:4px;font-size:0.73rem;color:#374151;padding:2px 0;">
+        <span style="color:#6b7280;min-width:110px;">${dateStr}</span>
+        <span style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:1px 5px;font-weight:700;white-space:nowrap;">${ago}</span>
+        <span style="color:#6b7280;">${h.congregation}${h.speaker?' / '+h.speaker:''}</span>
+      </span>`;
+    }).join('');
+    histHtml=`<span style="display:block;font-size:0.7rem;font-weight:700;color:#374151;font-family:'Noto Sans KR',sans-serif;margin-top:5px;padding-top:5px;border-top:1px dashed #d1d5db;">
+      📅 과거 연설 이력
+    </span>${rows}`;
+  } else {
+    histHtml=`<span style="display:block;font-size:0.7rem;color:#9ca3af;font-family:'Noto Sans KR',sans-serif;margin-top:4px;">아직 연설 이력이 없습니다</span>`;
+  }
+
+  if(dupList.length>0){
+    const info=dupList.map(e=>{
+      const d=new Date(e.date+'T00:00:00');
+      return `${d.getMonth()+1}월 ${d.getDate()}일 (${e.congregation||'?'} / ${e.speaker||'?'})`;
+    }).join(', ');
+    el.innerHTML=`
+      <span style="display:block;font-size:0.81rem;color:#b91c1c;font-weight:700;font-family:'Noto Sans KR',sans-serif;">⚠️ 중복! 이미 등록된 골자입니다 → ${info}</span>
+      <span style="display:block;font-size:0.82rem;color:#1a2744;font-weight:600;font-family:'Noto Serif KR',serif;margin-top:3px;">[${n}] ${TALKS[n]}</span>
+      ${histHtml}`;
+    el.className='tprev';
+    el.style.background='#fef2f2';
+    el.style.borderColor='#f87171';
+  } else {
+    el.innerHTML=`
+      <span style="display:block;font-size:0.84rem;color:#1a2744;font-weight:600;font-family:'Noto Serif KR',serif;">[${n}] ${TALKS[n]}</span>
+      ${histHtml}`;
+    el.className='tprev';
+    el.style.background='';
+    el.style.borderColor='';
+  }
+}
+
+/* ── 일반 추가 ── */
+function addEntry(){
+  const raw=document.getElementById('numInput').value;
+  const n=parseInt(raw);
+  const isSpecial=(raw!==''&&n===0);
+  const dv=document.getElementById('sundaySel').value;
+  if(raw===''||(!isSpecial&&!TALKS[n])){alert('올바른 골자 번호를 입력하세요\n(특별 연설은 0을 입력하세요)');return;}
+  if(!dv){alert('일요일 날짜를 선택하세요');return;}
+  // 수동 제목
+  const customTitle = manualMode ? document.getElementById('titleManual').value.trim() : '';
+  if(isSpecial && !customTitle){alert('특별 연설은 제목을 직접 입력하세요');return;}
+  // 중복 확인 (0번은 중복 체크 안 함)
+  if(!isSpecial){
+    const dup=entries[curYear].filter(e=>e.type==='talk'&&e.num===n&&e.num!==0);
+    if(dup.length>0){
+      const info=dup.map(e=>{const d=new Date(e.date+'T00:00:00');return `${d.getMonth()+1}월 ${d.getDate()}일 (${e.congregation||'?'} / ${e.speaker||'?'})`;}).join('\n');
+      if(!confirm(`⚠️ 골자 ${n}번은 이미 등록되어 있습니다.\n\n${info}\n\n그래도 추가하시겠습니까?`))return;
+    }
+  }
+  ensureYear(curYear);
+  entries[curYear].push({
+    type:'talk',date:dv,num:n,
+    congregation:document.getElementById('congInput').value.trim(),
+    speaker:document.getElementById('speakerInput').value.trim(),
+    phone:document.getElementById('phoneInput').value.trim(),
+    note:document.getElementById('noteInput').value.trim(),
+    chair:document.getElementById('chairInput').value.trim(),
+    reader:document.getElementById('readerInput').value.trim(),
+    host:document.getElementById('hostInput').value.trim(),
+    customTitle: customTitle
+  });
+  sortEntries(curYear);save();renderList();renderTable();
+  // 윤번 자동 모드면 idx 전진
+  ['chair','reader'].forEach(role=>{
+    if(rotation[role].mode==='auto' && rotation[role].members.length){
+      rotation[role].idx=(rotation[role].idx+1)%rotation[role].members.length;
+    }
+  });
+  save();
+  renderRotList('chair'); renderRotList('reader');
+  ['numInput','monthSel','congInput','speakerInput','phoneInput','noteInput','chairInput','readerInput','hostInput'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sundaySel').innerHTML='<option value="">-- 날짜 --</option>';
+  document.getElementById('dateDisp').classList.add('hidden');
+  const p=document.getElementById('titlePreview');p.innerHTML='골자 번호 입력 시 자동 표시';p.className='tprev empty';p.style.display='flex';
+  // 수동 모드 초기화
+  if(manualMode){
+    manualMode=false;
+    document.getElementById('titleManual').style.display='none';
+    document.getElementById('titleManual').value='';
+    document.getElementById('manualToggleBtn').textContent='✏️ 직접 입력';
+    document.getElementById('manualToggleBtn').style.background='#e8edf8';
+    document.getElementById('manualToggleBtn').style.borderColor='#b0bcd8';
+  }
+}
+
+/* ── 특별행 추가 ── */
+function addSpecial(){
+  const dv=document.getElementById('spSundaySel').value;
+  const txt=document.getElementById('spText').value.trim();
+  if(!dv){alert('날짜를 선택하세요');return;}
+  if(!txt){alert('표시 텍스트를 입력하세요');return;}
+  entries[curYear].push({
+    type:'special',date:dv,text:txt,
+    congregation:document.getElementById('spCong').value.trim(),
+    bold:document.getElementById('spBold').value==='1'
+  });
+  sortEntries(curYear);save();renderList();renderSpecialList();renderTable();
+  ['spMonthSel','spText','spCong'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('spSundaySel').innerHTML='<option value="">-- 날짜 --</option>';
+  document.getElementById('spBold').value='1';
+}
+function sortEntries(y){entries[y].sort((a,b)=>a.date.localeCompare(b.date));}
+
+/* ── 성구 저장 ── */
+function saveScripture(){
+  const v=document.getElementById('scriptureInput').value.trim();
+  if(!v){alert('성구를 입력하세요');return;}
+  scripture[curYear]=v;save();renderTable();
+  alert('성구가 저장되었습니다.');
+}
+
+/* ── 계획표 제목 편집 ── */
+// 관리탭 폼에서 저장
+function savePlanTitle(){
+  const v=document.getElementById('planTitleInput').value.trim();
+  planTitle[curYear]=v||'';
+  save();renderTable();
+  // 제목 입력란 업데이트
+  syncTitleInput();
+  alert('제목이 저장되었습니다.');
+}
+function resetPlanTitle(){
+  planTitle[curYear]='';
+  save();renderTable();
+  document.getElementById('planTitleInput').value='';
+}
+function syncTitleInput(){
+  const inp=document.getElementById('planTitleInput');
+  if(inp) inp.value=planTitle[curYear]||'';
+}
+
+// 계획표 탭: 제목 클릭 → 인라인 편집
+function editPlanTitle(){
+  const row=document.getElementById('planTitleRow');
+  if(row.querySelector('input')) return; // 이미 편집 중
+  const selY=parseInt(document.getElementById('tblYearSel').value)||curYear;
+  const baseTitle=(planTitle[selY]&&planTitle[selY].trim())?planTitle[selY].trim():DEFAULT_PLAN_TITLE;
+  const half=document.getElementById('tblHalfSel').value;
+  let suffix=`(${selY}년`;
+  if(half==='1') suffix+=` 상반기)`;
+  else if(half==='2') suffix+=` 하반기)`;
+  else suffix+=`)`;
+
+  row.onclick=null; // 편집 중 재클릭 방지
+  row.style.cursor='default';
+  row.style.background='#fffde7';
+  row.innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap;padding:2px 4px;">
+      <input id="inlineTitleInp" class="plan-title-edit" value="${baseTitle}" style="max-width:340px;">
+      <span style="font-size:1rem;color:#555;white-space:nowrap;">${suffix}</span>
+      <button onclick="saveInlineTitle(${selY})"
+        style="padding:4px 12px;background:var(--navy);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.8rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;">저장</button>
+      <button onclick="cancelInlineTitle()"
+        style="padding:4px 10px;border:1.5px solid #ccc;background:white;border-radius:5px;cursor:pointer;font-size:0.8rem;font-family:'Noto Sans KR',sans-serif;">취소</button>
+    </div>`;
+  document.getElementById('inlineTitleInp').focus();
+  document.getElementById('inlineTitleInp').select();
+  // Enter 키로 저장
+  document.getElementById('inlineTitleInp').addEventListener('keydown',e=>{
+    if(e.key==='Enter') saveInlineTitle(selY);
+    if(e.key==='Escape') cancelInlineTitle();
+  });
+}
+function saveInlineTitle(selY){
+  const v=document.getElementById('inlineTitleInp')?.value.trim()||'';
+  planTitle[selY]=v;
+  save();
+  syncTitleInput();
+  renderTable(); // 제목 행 복원 + 업데이트
+}
+function cancelInlineTitle(){
+  renderTable(); // 원래 상태로 복원
+}
+
+/* ── 수정 ── */
+let editIdx=-1;
+function openEdit(i){
+  editIdx=i;const e=entries[curYear][i];
+  if(e.type!=='talk')return;
+  document.getElementById('eNum').value=e.num;
+  document.getElementById('eDate').value=e.date;
+  document.getElementById('eCong').value=e.congregation||'';
+  document.getElementById('eSpeaker').value=e.speaker||'';
+  document.getElementById('ePhone').value=e.phone||'';
+  document.getElementById('eNote').value=e.note||'';
+  document.getElementById('eChair').value=e.chair||'';
+  document.getElementById('eReader').value=e.reader||'';
+  document.getElementById('eHost').value=e.host||'';
+  // 수동 제목 처리
+  eManualMode = false;
+  const eTitleManual = document.getElementById('eTitleManual');
+  const eTitlePreview = document.getElementById('eTitlePreview');
+  const eManualBtn = document.getElementById('eManualToggleBtn');
+  eTitleManual.style.display='none';
+  eTitleManual.value='';
+  eTitlePreview.style.display='flex';
+  eManualBtn.textContent='✏️ 직접 입력';
+  eManualBtn.style.background='#e8edf8';
+  eManualBtn.style.borderColor='#b0bcd8';
+  if(e.customTitle){
+    eManualMode=true;
+    eTitleManual.value=e.customTitle;
+    eTitleManual.style.display='block';
+    eTitlePreview.style.display='none';
+    eManualBtn.textContent='🔄 자동으로';
+    eManualBtn.style.background='#fef9c3';
+    eManualBtn.style.borderColor='#d4a843';
+  }
+  onENumInput();
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal(){document.getElementById('editModal').classList.remove('open');editIdx=-1;}
+function saveEdit(){
+  if(editIdx<0)return;
+  const raw=document.getElementById('eNum').value;
+  const n=parseInt(raw);
+  const isSpecial=(raw!==''&&n===0);
+  if(raw===''||(!isSpecial&&!TALKS[n])){alert('올바른 골자 번호를 입력하세요\n(특별 연설은 0을 입력하세요)');return;}
+  const customTitle=eManualMode ? document.getElementById('eTitleManual').value.trim() : '';
+  if(isSpecial&&!customTitle){alert('특별 연설은 제목을 직접 입력하세요');return;}
+  entries[curYear][editIdx]={
+    type:'talk',date:document.getElementById('eDate').value,num:n,
+    congregation:document.getElementById('eCong').value.trim(),
+    speaker:document.getElementById('eSpeaker').value.trim(),
+    phone:document.getElementById('ePhone').value.trim(),
+    note:document.getElementById('eNote').value.trim(),
+    chair:document.getElementById('eChair').value.trim(),
+    reader:document.getElementById('eReader').value.trim(),
+    host:document.getElementById('eHost').value.trim(),
+    customTitle: customTitle
+  };
+  sortEntries(curYear);save();renderList();renderTable();closeModal();
+}
+document.getElementById('editModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+/* ── 삭제 ── */
+function delEntry(i){
+  if(!confirm('이 일정을 삭제하시겠습니까?'))return;
+  entries[curYear].splice(i,1);save();renderList();renderSpecialList();renderTable();
+}
+
+/* ── 관리 목록 렌더 ── */
+function renderList(){
+  const list=document.getElementById('entryList');
+  const arr=entries[curYear];
+  document.getElementById('entryCount').textContent=arr.length+'건';
+  if(!arr.length){
+    list.innerHTML=`<div class="empty-state"><div class="icon">📋</div><p>${curYear}년 일정이 없습니다.</p></div>`;
+    return;
+  }
+  list.innerHTML=arr.map((e,i)=>{
+    const d=new Date(e.date+'T00:00:00');
+    if(e.type==='special'){
+      return`<div class="ei" style="background:#fdf8f0;border-color:#d4a843;">
+        <div class="edb" style="background:#6b4f3a;">
+          <div class="em">${MKO[d.getMonth()+1]}</div>
+          <div class="ed">${d.getDate()}</div>
+          <div class="ew">일요일</div>
+        </div>
+        <div class="einfo">
+          <div class="etop"><span class="enum" style="color:#6b4f3a;">⭐ 특별행</span>${e.congregation?`<span class="econg">${e.congregation}</span>`:''}</div>
+          <div class="etitle" style="font-size:0.95rem;letter-spacing:2px;">${e.text}</div>
+        </div>
+        <div class="eact">
+          <button class="bico" onclick="delEntry(${i})" title="삭제">🗑️</button>
+        </div>
+      </div>`;
+    }
+    const isSpecialSermon = (e.num===0);
+    const title = e.customTitle || (!isSpecialSermon && TALKS[e.num]) || (isSpecialSermon?'특별 연설':'');
+    // 중복 여부 확인 (0번 제외)
+    const isDup = !isSpecialSermon && entries[curYear].filter(x=>x.type==='talk'&&x.num===e.num&&x.num!==0).length > 1;
+    return`<div class="ei" ${isDup?'style="border-color:#f87171;background:#fff8f8;"':isSpecialSermon?'style="border-color:#a78bfa;background:#faf5ff;"':''}>
+      <div class="edb" ${isDup?'style="background:#b91c1c;"':isSpecialSermon?'style="background:#7c3aed;"':''}>
+        <div class="em">${MKO[d.getMonth()+1]}</div>
+        <div class="ed">${d.getDate()}</div>
+        <div class="ew">일요일</div>
+      </div>
+      <div class="einfo">
+        <div class="etop">
+          ${isSpecialSermon
+            ? `<span class="enum" style="color:#7c3aed;">⭐ 특별연설</span>`
+            : `<span class="enum">골자 ${e.num}</span>`}
+          ${isDup?`<span style="background:#fef2f2;color:#b91c1c;font-size:0.62rem;font-weight:700;border-radius:4px;padding:1px 6px;border:1px solid #fca5a5;">⚠️ 중복</span>`:''}
+          ${e.customTitle?`<span style="background:#fef9c3;color:#92400e;font-size:0.62rem;font-weight:700;border-radius:4px;padding:1px 6px;border:1px solid #d4a843;">✏️ 수동</span>`:''}
+          ${e.congregation?`<span class="econg">🏛 ${e.congregation}</span>`:''}
+        </div>
+        <div class="etitle">${title}</div>
+        <div class="emeta">
+          ${e.speaker?`<span>👤 ${e.speaker}</span>`:''}
+          ${e.phone?`<span>📞 ${e.phone}</span>`:''}
+        </div>
+        ${e.note?`<div class="enote">📌 ${e.note}</div>`:''}
+      </div>
+      <div class="eact">
+        <button class="bico edit" onclick="openEdit(${i})" title="수정">✏️</button>
+        <button class="bico" onclick="delEntry(${i})" title="삭제">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 특별행 목록 (폼 내) ── */
+function renderSpecialList(){
+  const arr=entries[curYear].filter(e=>e.type==='special');
+  const el=document.getElementById('specialList');
+  if(!arr.length){el.innerHTML='';return;}
+  el.innerHTML=arr.map((e,_)=>{
+    const globalIdx=entries[curYear].indexOf(e);
+    const d=new Date(e.date+'T00:00:00');
+    return`<div class="special-item">
+      <span class="si-date">${d.getMonth()+1}월 ${d.getDate()}일</span>
+      <span class="si-text">${e.text}${e.congregation?' ('+e.congregation+')':''}</span>
+      <button class="si-del" onclick="delEntry(${globalIdx})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── 계획표 표 렌더 ── */
+function renderTable(){
+  const sel = document.getElementById('tblYearSel');
+  const selY = (sel && parseInt(sel.value)) || curYear;
+  const half = document.getElementById('tblHalfSel').value;
+
+  // 제목 — 커스텀 또는 기본값
+  const baseTitle = (planTitle[selY]&&planTitle[selY].trim()) ? planTitle[selY].trim() : DEFAULT_PLAN_TITLE;
+  let suffix = `(${selY}년`;
+  if(half==='1') suffix+=` 상반기)`;
+  else if(half==='2') suffix+=` 하반기)`;
+  else suffix+=`)`;
+  const titleEl=document.getElementById('planTitleRow');
+  titleEl.textContent=`${baseTitle} ${suffix}`;
+  titleEl.onclick=editPlanTitle;
+  titleEl.style.cursor='pointer';
+  titleEl.style.background='';
+
+  // 성구
+  document.getElementById('planFooter').textContent=scripture[selY]||'';
+
+  let arr=entries[selY]||[];
+  // 반기 필터
+  if(half==='1') arr=arr.filter(e=>{const m=new Date(e.date+'T00:00:00').getMonth()+1;return m<=6;});
+  if(half==='2') arr=arr.filter(e=>{const m=new Date(e.date+'T00:00:00').getMonth()+1;return m>=7;});
+
+  const tbody=document.getElementById('planTbody');
+  if(!arr.length){
+    tbody.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center;color:#888;font-style:italic;">${selY}년 강연 일정이 없습니다.</td></tr>`;
+    return;
+  }
+
+  // 날짜 표시: 첫 항목이거나 월이 바뀔 때만 "N월"을 앞에 표시
+  let lastMonth=-1;
+  tbody.innerHTML=arr.map(e=>{
+    const d=new Date(e.date+'T00:00:00');
+    const m=d.getMonth()+1; const day=d.getDate();
+
+    // 특별행
+    if(e.type==='special'){
+      const congCell=e.congregation?`<td>${e.congregation}</td>`:'<td></td>';
+      const cls=e.bold?'bold-cell':'';
+      let dateLabel='';
+      if(m!==lastMonth){dateLabel=`<span style="font-size:0.72rem;color:#555;display:block;">${m}월</span>`;}
+      lastMonth=m;
+      dateLabel+=`<span style="font-size:0.88rem;font-weight:700;">${day}일</span>`;
+      return`<tr class="special-row">
+        <td class="td-date">${dateLabel}</td>
+        <td colspan="6" class="${cls}">${e.text}</td>
+      </tr>`;
+    }
+
+    // 일반 강연
+    let dateLabel='';
+    if(m!==lastMonth){dateLabel=`<span class="month">${m}월</span>`;}
+    lastMonth=m;
+    dateLabel+=`<span class="day">${day}일</span>`;
+
+    const n = e.num; // 골자 번호
+
+    // 0번 = 특별 연설 (골자 번호 없이 제목만)
+    if(n===0){
+      const spTitle = e.customTitle || '';
+      return`<tr style="background:#faf5ff;">
+        <td class="td-date">${dateLabel}</td>
+        <td>${e.congregation||''}</td>
+        <td>${e.speaker||''}</td>
+        <td class="td-talk" style="font-style:italic;">
+          <span style="font-size:0.7rem;color:#7c3aed;font-weight:700;display:block;margin-bottom:1px;">특별 연설</span>
+          <span class="talk-txt" style="color:#4c1d95;">${spTitle}</span>
+        </td>
+        <td>${e.chair||''}</td>
+        <td>${e.reader||''}</td>
+        <td>${e.host||''}</td>
+      </tr>`;
+    }
+
+    const title = e.customTitle || TALKS[e.num] || `골자 ${e.num}`;
+    return`<tr>
+      <td class="td-date">${dateLabel}</td>
+      <td>${e.congregation||''}</td>
+      <td>${e.speaker||''}</td>
+      <td class="td-talk"><span class="talk-num">(${e.num})</span> <span class="talk-txt">${title}</span></td>
+      <td>${e.chair||''}</td>
+      <td>${e.reader||''}</td>
+      <td>${e.host||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   환영사 탭 기능
+══════════════════════════════════════════ */
+
+const W_KEY = 'kjEast_welcome_v1';
+
+/* 모든 연도 entries에서 조건에 맞는 항목 검색 */
+function getAllTalkEntries(){
+  const list=[];
+  Object.keys(entries).forEach(y=>{
+    (entries[parseInt(y)]||[]).forEach(e=>{
+      if(e.type==='talk') list.push({...e, year:parseInt(y)});
+    });
+  });
+  return list.sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+/* 다음 강연 찾기 (특정 날짜 다음 talk) */
+function getNextTalk(dateStr){
+  const all=getAllTalkEntries().filter(e=>e.date>dateStr&&e.num!==0&&(e.customTitle||TALKS[e.num]));
+  return all[0]||null;
+}
+
+/* 검색 결과 카드 렌더 */
+function renderSearchResults(results, highlightChair){
+  const el=document.getElementById('wSearchResults');
+  if(!results.length){
+    el.innerHTML=`<div style="font-size:0.78rem;color:var(--text-muted);text-align:center;padding:8px;">해당 조건의 강연이 없습니다.</div>`;
+    return;
+  }
+  el.innerHTML=results.map((e,i)=>{
+    const d=new Date(e.date+'T00:00:00');
+    const dateLabel=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (일)`;
+    const title=e.customTitle||TALKS[e.num]||(e.num===0?'특별 연설':'');
+    const chairHl=highlightChair&&e.chair===highlightChair
+      ?`<b style="color:#0369a1;">${e.chair}</b>`:e.chair;
+    return`<div style="background:${i===0?'#eff6ff':'white'};border:1.5px solid ${i===0?'#93c5fd':'#e2e8f0'};border-radius:7px;padding:9px 12px;cursor:pointer;transition:all 0.15s;"
+        onclick="applyToWelcome(${JSON.stringify(e).replace(/"/g,'&quot;')})">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+        <span style="font-size:0.72rem;font-weight:700;color:#0369a1;background:#dbeafe;border-radius:3px;padding:1px 6px;">${dateLabel}</span>
+        ${e.chair?`<span style="font-size:0.7rem;color:#374151;">사회: ${chairHl}</span>`:''}
+        ${i===0?`<span style="font-size:0.65rem;background:#dcfce7;color:#166534;border-radius:3px;padding:1px 5px;font-weight:700;">← 선택</span>`:''}
+      </div>
+      <div style="font-size:0.82rem;font-weight:600;color:var(--navy);font-family:'Noto Serif KR',serif;">${title||'(제목 미입력)'}</div>
+      <div style="font-size:0.73rem;color:var(--text-muted);margin-top:2px;">
+        ${e.congregation?`🏛 ${e.congregation}`:''}${e.speaker?` &nbsp;👤 ${e.speaker}`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* 사회자 이름으로 검색 */
+function searchByChair(){
+  const name=document.getElementById('wChairSearch').value.trim();
+  if(!name){ document.getElementById('wSearchResults').innerHTML=''; return; }
+  const all=getAllTalkEntries();
+  const matches=all.filter(e=>e.chair&&e.chair.includes(name)&&e.num!==undefined);
+  renderSearchResults(matches.slice(0,5), name);
+}
+
+/* 날짜로 검색 */
+function searchByDate(){
+  const dv=document.getElementById('wDateSearch').value;
+  if(!dv){ document.getElementById('wSearchResults').innerHTML=''; return; }
+  const all=getAllTalkEntries();
+  // 정확히 그 날 + 앞뒤 1주
+  const target=new Date(dv+'T00:00:00');
+  const near=all.filter(e=>{
+    const d=new Date(e.date+'T00:00:00');
+    return Math.abs(d-target)<=7*24*60*60*1000;
+  });
+  renderSearchResults(near.slice(0,5), '');
+}
+
+/* 계획표 데이터 → 환영사 폼에 적용 */
+function applyToWelcome(e){
+  const title=e.customTitle||TALKS[e.num]||(e.num===0?'특별 연설':'');
+  document.getElementById('wTalkTitle').value   = title||'';
+  document.getElementById('wCong').value        = e.congregation||'';
+  document.getElementById('wSpeaker').value     = e.speaker||'';
+  document.getElementById('wChair').value       = e.chair||'';
+  // 다음 주 강연 제목 자동 입력
+  const next=getNextTalk(e.date);
+  if(next){
+    const nt=next.customTitle||TALKS[next.num]||'';
+    document.getElementById('wNextTalk').value=nt;
+  }
+  // 자동입력 태그 표시
+  document.getElementById('wAutoTag').style.display='inline';
+  wShowStatus('✅ 계획표에서 자동으로 불러왔습니다!');
+  // 검색 결과 접기
+  document.getElementById('wSearchResults').innerHTML='';
+}
+
+/* 저장 / 불러오기 / 초기화 */
+function saveWelcome(){
+  const data={
+    welcome   :document.getElementById('wWelcome').value,
+    song      :document.getElementById('wSong').value,
+    talkTitle :document.getElementById('wTalkTitle').value,
+    cong      :document.getElementById('wCong').value,
+    speaker   :document.getElementById('wSpeaker').value,
+    chair     :document.getElementById('wChair').value,
+    nextTalk  :document.getElementById('wNextTalk').value,
+    wtConductor:document.getElementById('wWtConductor').value,
+  };
+  localStorage.setItem(W_KEY,JSON.stringify(data));
+  wShowStatus('💾 저장되었습니다.');
+}
+function loadWelcome(){
+  try{
+    const raw=localStorage.getItem(W_KEY);
+    if(!raw){ wShowStatus('❌ 저장된 내용이 없습니다.'); return; }
+    const d=JSON.parse(raw);
+    document.getElementById('wWelcome').value     =d.welcome||'';
+    document.getElementById('wSong').value        =d.song||'';
+    document.getElementById('wTalkTitle').value   =d.talkTitle||'';
+    document.getElementById('wCong').value        =d.cong||'';
+    document.getElementById('wSpeaker').value     =d.speaker||'';
+    document.getElementById('wChair').value       =d.chair||'';
+    document.getElementById('wNextTalk').value    =d.nextTalk||'';
+    document.getElementById('wWtConductor').value =d.wtConductor||'';
+    if(d.talkTitle||d.speaker) document.getElementById('wAutoTag').style.display='inline';
+  }catch(e){}
+}
+function resetWelcome(){
+  if(!confirm('환영사 입력 내용을 모두 지우시겠습니까?'))return;
+  ['wWelcome','wSong','wTalkTitle','wCong','wSpeaker','wChair','wNextTalk','wWtConductor']
+    .forEach(id=>document.getElementById(id).value='');
+  localStorage.removeItem(W_KEY);
+  document.getElementById('wAutoTag').style.display='none';
+  wShowStatus('🗑️ 초기화되었습니다.');
+}
+function wShowStatus(msg){
+  const el=document.getElementById('wStatus');
+  el.textContent=msg;
+  setTimeout(()=>{ el.textContent=''; },3000);
+}
+
+/* ── Init ── */
+load();
+// buildYearTabs로 tblYearSel 옵션 먼저 채우기
+buildYearTabs();
+const _initSel=document.getElementById('tblYearSel');
+if(_initSel){ _initSel.value=String(curYear); if(!_initSel.value&&_initSel.options.length) _initSel.selectedIndex=0; }
+// 나머지 UI 갱신 (renderTable 포함)
+refreshUI();
+</script>
+</body>
+</html>
