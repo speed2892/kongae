@@ -1617,8 +1617,11 @@ function addEntry(){
     }
   }
   ensureYear(curYear);
-  entries[curYear].push({
-    type:'talk',date:dv,num:n,
+
+  // 같은 날짜에 이미 talk 항목이 있으면 교체, 없으면 추가
+  const existIdx = entries[curYear].findIndex(e => e.type==='talk' && e.date===dv);
+  const newEntry = {
+    type:'talk', date:dv, num:n,
     congregation:document.getElementById('congInput').value.trim(),
     speaker:document.getElementById('speakerInput').value.trim(),
     phone:document.getElementById('phoneInput').value.trim(),
@@ -1627,7 +1630,13 @@ function addEntry(){
     reader:document.getElementById('readerInput').value.trim(),
     host:document.getElementById('hostInput').value.trim(),
     customTitle: customTitle
-  });
+  };
+  if(existIdx >= 0){
+    // 같은 날짜 항목이 있으면 덮어쓰기
+    entries[curYear][existIdx] = newEntry;
+  } else {
+    entries[curYear].push(newEntry);
+  }
   sortEntries(curYear);save();renderList();renderTable();
   // 윤번 자동 모드면 idx 전진
   ['chair','reader'].forEach(role=>{
@@ -1787,8 +1796,9 @@ function saveEdit(){
   if(raw===''||(!isSpecial&&!TALKS[n])){alert('올바른 골자 번호를 입력하세요\n(특별 연설은 0을 입력하세요)');return;}
   const customTitle=eManualMode ? document.getElementById('eTitleManual').value.trim() : '';
   if(isSpecial&&!customTitle){alert('특별 연설은 제목을 직접 입력하세요');return;}
-  entries[curYear][editIdx]={
-    type:'talk',date:document.getElementById('eDate').value,num:n,
+  const newDate = document.getElementById('eDate').value;
+  const newEntry = {
+    type:'talk', date:newDate, num:n,
     congregation:document.getElementById('eCong').value.trim(),
     speaker:document.getElementById('eSpeaker').value.trim(),
     phone:document.getElementById('ePhone').value.trim(),
@@ -1798,6 +1808,18 @@ function saveEdit(){
     host:document.getElementById('eHost').value.trim(),
     customTitle: customTitle
   };
+  // 날짜가 바뀌었을 때 새 날짜에 이미 다른 항목이 있으면 그것을 제거
+  const oldDate = entries[curYear][editIdx] ? entries[curYear][editIdx].date : '';
+  if(newDate !== oldDate){
+    const dupIdx = entries[curYear].findIndex((e,i)=> i!==editIdx && e.type==='talk' && e.date===newDate);
+    if(dupIdx>=0){
+      if(!confirm(`⚠️ ${newDate} 날짜에 이미 다른 일정이 있습니다.\n기존 일정을 교체하시겠습니까?`))return;
+      entries[curYear].splice(dupIdx, 1);
+      // splice 후 editIdx 재조정
+      if(dupIdx < editIdx) editIdx--;
+    }
+  }
+  entries[curYear][editIdx] = newEntry;
   sortEntries(curYear);save();renderList();renderTable();closeModal();
 }
 document.getElementById('editModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
