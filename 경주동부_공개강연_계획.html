@@ -2,8 +2,19 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>경주동부 공개강연 계획표</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="경주동부 계획표">
+<meta name="application-name" content="경주동부 계획표">
+<meta name="theme-color" content="#1a2744">
+<meta name="description" content="경주 동부 회중 공개강연 계획표">
+<link rel="manifest" href="manifest.json">
+<!-- 앱 아이콘 (인라인 SVG → data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%231a2744'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='%23d4a843'%3E📋%3C/text%3E%3C/svg%3E">
 <!-- Firebase SDK (defer: 페이지 로드 후 실행) -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -264,12 +275,82 @@ body{font-family:'Noto Sans KR',sans-serif;background:#eee;color:var(--text);min
   .plan-table th{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .special-row td{background:#f5f5f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
+/* ── 태블릿 (768px 이하) ── */
+@media(max-width:768px){
+  .manage-inner{padding:10px;}
+  .tbl-page-inner{padding:10px;}
+  .plan-table th,.plan-table td{padding:7px 4px;font-size:0.78rem;}
+  .tbl-controls{gap:6px;}
+  .modal{max-width:100%;margin:8px;}
+  .ei{padding:9px 10px;gap:8px;}
+}
+/* ── 모바일 (520px 이하) ── */
 @media(max-width:520px){
+  .app-header{padding:14px 14px 10px;}
   .app-header h1{font-size:1rem;}
-  .frow{flex-direction:column;}
+  .app-header p{font-size:0.68rem;}
+  .tab-btn{font-size:0.72rem;padding:9px 4px;}
+  .year-tab{font-size:0.7rem;padding:6px 3px;min-width:56px;}
+  .manage-inner{padding:8px;}
+  .tbl-page-inner{padding:8px;}
+  .frow{flex-direction:column;gap:6px;}
   .fg{min-width:auto;}
+  .form-body{padding:10px 12px;}
+  .form-hdr{font-size:0.74rem;padding:9px 12px;}
+  /* 계획표 테이블 */
+  .plan-table{font-size:0.72rem;}
   .plan-table th,.plan-table td{padding:5px 3px;font-size:0.72rem;}
+  .plan-title-row{font-size:0.95rem;padding:9px 6px;}
   .col-read{display:none;}
+  /* 일정 카드 */
+  .ei{padding:8px 9px;gap:7px;}
+  .edb{min-width:40px;border-radius:5px;}
+  .edb .ed{font-size:1.1rem;}
+  .etitle{font-size:0.82rem;}
+  .emeta{font-size:0.68rem;}
+  /* 모달 */
+  .modal{max-width:100%;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:85vh;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  /* 버튼 */
+  .btn-add{font-size:0.84rem;padding:11px;}
+  .btn-print{font-size:0.74rem;padding:6px 10px;}
+  /* 윤번 */
+  .spick{flex-wrap:wrap;}
+  .tbl-controls{flex-wrap:wrap;}
+  .year-sel2,.half-sel{font-size:0.78rem;padding:5px 8px;}
+}
+/* ── 아이폰 노치 대응 ── */
+@supports(padding: env(safe-area-inset-bottom)){
+  .app-header{padding-top:calc(14px + env(safe-area-inset-top));}
+  body{padding-bottom:env(safe-area-inset-bottom);}
+}
+/* ── PWA 설치 배너 ── */
+#installBanner{
+  display:none;
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  background:var(--navy);color:white;
+  border-radius:12px;padding:12px 20px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  z-index:9999;
+  display:none;
+  align-items:center;gap:10px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:0.84rem;
+  max-width:340px;width:calc(100% - 32px);
+  border:1.5px solid var(--gold);
+}
+#installBanner.show{display:flex;}
+#installBanner .ib-icon{font-size:1.4rem;flex-shrink:0;}
+#installBanner .ib-text{flex:1;line-height:1.4;}
+#installBanner .ib-text b{display:block;font-size:0.88rem;margin-bottom:2px;}
+#installBanner .ib-btn{
+  background:var(--gold);color:var(--navy);border:none;border-radius:7px;
+  padding:7px 12px;font-family:'Noto Sans KR',sans-serif;font-size:0.8rem;
+  font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;
+}
+#installBanner .ib-close{
+  background:none;border:none;color:rgba(255,255,255,0.5);
+  cursor:pointer;font-size:1.1rem;padding:0;flex-shrink:0;
 }
 </style>
 </head>
@@ -2144,6 +2225,54 @@ window.addEventListener('load', function(){
   const _initSel=document.getElementById('tblYearSel');
   if(_initSel){ _initSel.value=String(curYear); if(!_initSel.value&&_initSel.options.length) _initSel.selectedIndex=0; }
   refreshUI();
+});
+</script>
+<!-- PWA 설치 배너 -->
+<div id="installBanner">
+  <span class="ib-icon">📋</span>
+  <div class="ib-text">
+    <b>앱으로 설치하기</b>
+    홈화면에 추가하면 앱처럼 사용 가능합니다
+  </div>
+  <button class="ib-btn" onclick="installApp()">설치</button>
+  <button class="ib-close" onclick="dismissInstall()">✕</button>
+</div>
+
+<script>
+/* ══ PWA 설치 ══ */
+let _deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  _deferredPrompt = e;
+  // 설치 배너 표시 (이미 설치됐으면 안 보임)
+  if(!localStorage.getItem('pwaInstalled')){
+    setTimeout(()=>{
+      document.getElementById('installBanner').classList.add('show');
+    }, 2000);
+  }
+});
+
+function installApp(){
+  if(!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  _deferredPrompt.userChoice.then(result=>{
+    if(result.outcome==='accepted'){
+      localStorage.setItem('pwaInstalled','1');
+      document.getElementById('installBanner').classList.remove('show');
+    }
+    _deferredPrompt=null;
+  });
+}
+function dismissInstall(){
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('pwaInstalled','1');
+}
+
+// 설치 완료 감지
+window.addEventListener('appinstalled',()=>{
+  localStorage.setItem('pwaInstalled','1');
+  document.getElementById('installBanner').classList.remove('show');
 });
 </script>
 </body>
