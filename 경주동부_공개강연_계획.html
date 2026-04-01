@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>경주동부 공개강연 계획표</title>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK (defer: 페이지 로드 후 실행) -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1277,6 +1277,34 @@ function switchTab(tab){
 }
 
 /* ── 연도탭 & select 갱신 ── */
+/* ── 전체 UI 갱신 ── */
+function refreshUI(){
+  buildYearTabs();
+  const _s=document.getElementById('tblYearSel');
+  if(_s){ _s.value=String(curYear); if(!_s.value&&_s.options.length) _s.selectedIndex=0; }
+  buildSundayOpts();
+  renderList();
+  renderSpecialList();
+  renderTable();
+  const si=document.getElementById('scriptureInput');
+  if(si) si.value=scripture[curYear]||'';
+  syncTitleInput();
+  renderRotList('chair');
+  renderRotList('reader');
+  fillAutoRot();
+  ['chair','reader'].forEach(role=>{
+    const r=rotation[role];
+    const btn=document.getElementById(role+'ModeBtn');
+    const inp=document.getElementById(role+'Input');
+    if(!btn||!inp) return;
+    if(r.mode==='manual'){
+      btn.textContent='✏️ 수동';btn.style.background='#fef9c3';btn.style.borderColor='#d4a843';btn.style.color='#92400e';inp.style.background='#fffde7';
+    } else {
+      btn.textContent='🔄 윤번';btn.style.background='#e0f2fe';btn.style.borderColor='#7dd3fc';btn.style.color='#0369a1';inp.style.background='#f0f9ff';
+    }
+  });
+}
+
 function buildYearTabs(){
   const thisYear=new Date().getFullYear();
   // 현재 연도 이전이고 데이터 없으면 숨김
@@ -2033,13 +2061,14 @@ function wShowStatus(msg){
 }
 
 /* ── Init ── */
-load();
-// buildYearTabs로 tblYearSel 옵션 먼저 채우기
-buildYearTabs();
-const _initSel=document.getElementById('tblYearSel');
-if(_initSel){ _initSel.value=String(curYear); if(!_initSel.value&&_initSel.options.length) _initSel.selectedIndex=0; }
-// 나머지 UI 갱신 (renderTable 포함)
-refreshUI();
+// defer SDK 로드 완료 후 실행
+window.addEventListener('load', function(){
+  load();
+  buildYearTabs();
+  const _initSel=document.getElementById('tblYearSel');
+  if(_initSel){ _initSel.value=String(curYear); if(!_initSel.value&&_initSel.options.length) _initSel.selectedIndex=0; }
+  refreshUI();
+});
 </script>
 </body>
 </html>
