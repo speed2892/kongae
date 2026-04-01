@@ -1072,8 +1072,31 @@ function load(){
     setSyncStatus('connecting');
     /* 최초 1회 Firestore에서 불러온 뒤 실시간 리스너 시작 */
     db.collection('kongae').doc('main').get()
-      .then(snap=>{ if(snap.exists) applyData(snap.data()); startListening(); })
-      .catch(()=>{ setSyncStatus('offline'); startListening(); });
+      .then(snap=>{
+        if(snap.exists){
+          // Firestore에 데이터 있으면 덮어씌우기
+          applyData(snap.data());
+        } else {
+          // Firestore가 비어 있으면 → INIT_ENTRIES 자동 업로드
+          console.log('Firestore 비어있음 → 초기 데이터 업로드');
+          // INIT_ENTRIES가 있으면 사용, 없으면 현재 entries 사용
+          const hasInit = Object.keys(INIT_ENTRIES).some(y=>(INIT_ENTRIES[parseInt(y)]||[]).length>0);
+          if(hasInit && Object.values(entries).every(arr=>arr.length===0)){
+            Object.keys(INIT_ENTRIES).forEach(y=>{
+              entries[parseInt(y)] = [...INIT_ENTRIES[parseInt(y)]];
+            });
+            Object.keys(INIT_SCRIPTURE).forEach(y=>{
+              scripture[parseInt(y)] = INIT_SCRIPTURE[parseInt(y)];
+            });
+            YEARS = buildYearRange(INIT_ENTRIES);
+            YEARS.forEach(y=>initYearData(y));
+          }
+          save(); // Firebase에 업로드
+          refreshUI();
+        }
+        startListening();
+      })
+      .catch(err=>{ console.error(err); setSyncStatus('offline'); startListening(); });
   }catch(e){
     console.warn('Firebase 연결 실패, 로컬 전용 모드:', e.message);
     fbOK = false;
