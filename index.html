@@ -1142,7 +1142,7 @@ let curYear = new Date().getFullYear();
 */
 const INIT_ROT = {
   chair: {
-    members:['강대정','오덕화','백문호','이승구','손태성','이학만','변우원','박승동','오민현','김철홍'],
+    members:['강대정','오덕화','백문호','이승구','손태성','이학만','변우현','박승동','오민현','김철홍'],
     idx: 0, mode:'auto'
   },
   reader: {
@@ -1213,11 +1213,11 @@ const INIT_ENTRIES={
     {type:'talk',date:"2026-04-05",num:68, congregation:"경주 안강",   speaker:"옥정욱", phone:"010-6668-0275", note:"", chair:"손태성", reader:"오민현", host:"김성연"},
     {type:'special',date:"2026-04-12",text:"순 회 대 회",congregation:"", bold:true},
     {type:'talk',date:"2026-04-19",num:6,  congregation:"경주 동부",   speaker:"김성연", phone:"", note:"", chair:"이학만", reader:"차규호", host:"백문호"},
-    {type:'talk',date:"2026-04-26",num:16, congregation:"화성 남양",   speaker:"김성수", phone:"010-6828-1935", note:"경주남부 임정석형제 소개", chair:"변우원", reader:"김성연", host:"이재경"},
+    {type:'talk',date:"2026-04-26",num:16, congregation:"화성 남양",   speaker:"김성수", phone:"010-6828-1935", note:"경주남부 임정석형제 소개", chair:"변우현", reader:"김성연", host:"이재경"},
     {type:'talk',date:"2026-05-03",num:8,  congregation:"경주 동부",   speaker:"오덕화", phone:"", note:"", chair:"박승동", reader:"이희수", host:"이동건"},
     {type:'talk',date:"2026-05-10",num:105,congregation:"포항 구룡포", speaker:"박대영", phone:"010-9970-7976", note:"", chair:"이학만", reader:"김철홍", host:"이재경"},
     {type:'talk',date:"2026-05-17",num:26, congregation:"홍항홍해동부",speaker:"김민규", phone:"010-9282-6368", note:"", chair:"백문호", reader:"박동혁", host:"박승동"},
-    {type:'talk',date:"2026-05-24",num:40, congregation:"경주 중앙",   speaker:"장득구", phone:"010-4261-5111", note:"", chair:"오덕화", reader:"오민현", host:"변우원"},
+    {type:'talk',date:"2026-05-24",num:40, congregation:"경주 중앙",   speaker:"장득구", phone:"010-4261-5111", note:"", chair:"오덕화", reader:"오민현", host:"변우현"},
     {type:'talk',date:"2026-05-31",num:144,congregation:"아산 탕정",   speaker:"우준호", phone:"010-5420-0599", note:"이승구형제 소개", chair:"김철홍", reader:"강대정", host:"이승구"},
     {type:'talk',date:"2026-06-07",num:121,congregation:"경주 동부",   speaker:"강대정", phone:"", note:"", chair:"오민현", reader:"차규호", host:"손태성"},
     {type:'talk',date:"2026-06-14",num:9,  congregation:"전주 팔복",   speaker:"천재희", phone:"010-3426-3114", note:"경주남부 임정석형제 소개", chair:"강대정", reader:"이희수", host:"백문호"},
@@ -1358,7 +1358,8 @@ function applyData(p){
   YEARS.sort((a,b)=>a-b);
   if(!YEARS.includes(curYear)) curYear = YEARS[YEARS.length-1]||new Date().getFullYear();
   // 지난 일정이 남아 있으면 정리해서 모든 기기에 반영
-  if(pruneOldEntries()>0 && fbOK){ save(); }
+  const fixedNames = fixNames();
+  if((pruneOldEntries()>0 || fixedNames) && fbOK){ save(); }
   saveLocal();
   refreshUI();
 }
@@ -1373,10 +1374,25 @@ function startListening(){
   _unsubRot = db.collection('kongae').doc('rotation').onSnapshot(snap=>{
     if(snap.exists && snap.data().data){
       rotation = snap.data().data;
-      saveLocal();
+      if(fixNames()) save(); else saveLocal();
       renderRotList('chair'); renderRotList('reader'); fillAutoRot();
     }
   }, err=>{ console.error(err); });
+}
+
+/* ── 잘못 저장된 이름 바로잡기 (예: 사진 확인 결과 '변우원' → '변우현') ── */
+const NAME_FIXES = {'변우원':'변우현'};
+function fixNames(){
+  let changed=false;
+  const fix=v=>{ if(NAME_FIXES[v]){ changed=true; return NAME_FIXES[v]; } return v; };
+  ['chair','reader'].forEach(role=>{
+    const r=rotation[role]; if(r&&Array.isArray(r.members)) r.members=r.members.map(fix);
+  });
+  Object.keys(entries).forEach(y=>(entries[y]||[]).forEach(e=>{
+    ['speaker','chair','reader','host'].forEach(k=>{ if(e[k]) e[k]=fix(e[k]); });
+  }));
+  Object.keys(archived).forEach(y=>(archived[y]||[]).forEach(a=>{ if(a.speaker) a.speaker=fix(a.speaker); }));
+  return changed;
 }
 
 /* ── 초기 로드 ── */
@@ -1420,6 +1436,7 @@ function load(){
     rotation.reader={...INIT_ROT.reader,members:[...INIT_ROT.reader.members]};
   }
   pruneOldEntries();
+  fixNames();
 
   /* 2) Firebase 연결 */
   try{
