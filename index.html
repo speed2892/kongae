@@ -13,8 +13,9 @@
 <meta name="theme-color" content="#1a2744">
 <meta name="description" content="경주 동부 회중 공개강연 계획표">
 <link rel="manifest" href="manifest.json">
-<!-- 앱 아이콘 (인라인 SVG → data URI) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%231a2744'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='%23d4a843'%3E📋%3C/text%3E%3C/svg%3E">
+<!-- 앱 아이콘 -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <!-- Firebase SDK (defer: 페이지 로드 후 실행) -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -460,6 +461,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#eee;color:var(--text);min
 <body>
 
 <div class="app-header">
+  <button class="hdr-btn" id="installBtn" style="display:none" onclick="installApp()" title="이 컴퓨터·휴대폰에 앱으로 설치">⬇️ 앱 설치</button>
   <h1>📋 경주동부 공개강연 계획표</h1>
   <p>경주 동부 회중 · Gyeongju East Congregation</p>
   <div id="syncStatus" style="margin-top:5px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;gap:5px;">
@@ -3099,48 +3101,57 @@ window.addEventListener('load', function(){
   <span class="ib-icon">📋</span>
   <div class="ib-text">
     <b>앱으로 설치하기</b>
-    홈화면에 추가하면 앱처럼 사용 가능합니다
+    컴퓨터·휴대폰에 설치하면 앱처럼 바로 열 수 있습니다
   </div>
   <button class="ib-btn" onclick="installApp()">설치</button>
   <button class="ib-close" onclick="dismissInstall()">✕</button>
 </div>
 
 <script>
-/* ══ PWA 설치 ══ */
+/* ══ PWA 설치 (컴퓨터 크롬·엣지 / 안드로이드) ══ */
 let _deferredPrompt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+// 서비스 워커: 이게 있어야 컴퓨터에서 "앱 설치"가 뜸
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+  navigator.serviceWorker.register('sw.js').catch(err=>console.warn('서비스 워커 등록 실패',err));
+}
 
 window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   _deferredPrompt = e;
-  // 설치 배너 표시 (이미 설치됐으면 안 보임)
-  if(!localStorage.getItem('pwaInstalled')){
-    setTimeout(()=>{
-      document.getElementById('installBanner').classList.add('show');
-    }, 2000);
-  }
+  // 헤더의 "앱 설치" 버튼은 설치 가능할 때 항상 보임
+  document.getElementById('installBtn').style.display='';
+  // 아래쪽 안내 배너는 처음 한 번만
+  let seen=false; try{ seen=!!localStorage.getItem('pwaInstalled'); }catch(err){}
+  if(!seen) setTimeout(()=>document.getElementById('installBanner').classList.add('show'), 2000);
 });
 
 function installApp(){
-  if(!_deferredPrompt) return;
+  if(!_deferredPrompt){
+    alert(isStandalone()
+      ? '이미 앱으로 실행 중입니다.'
+      : '이 브라우저에서는 자동 설치 창을 열 수 없습니다.\n\n• 컴퓨터(크롬·엣지): 주소창 오른쪽의 설치 아이콘(⊕ 또는 모니터 모양)을 누르세요.\n• 아이폰: 사파리 공유 버튼 → "홈 화면에 추가"');
+    return;
+  }
   _deferredPrompt.prompt();
   _deferredPrompt.userChoice.then(result=>{
-    if(result.outcome==='accepted'){
-      localStorage.setItem('pwaInstalled','1');
-      document.getElementById('installBanner').classList.remove('show');
-    }
+    if(result.outcome==='accepted') hideInstallUI();
     _deferredPrompt=null;
   });
 }
+function hideInstallUI(){
+  try{ localStorage.setItem('pwaInstalled','1'); }catch(err){}
+  document.getElementById('installBanner').classList.remove('show');
+  document.getElementById('installBtn').style.display='none';
+}
 function dismissInstall(){
   document.getElementById('installBanner').classList.remove('show');
-  localStorage.setItem('pwaInstalled','1');
+  try{ localStorage.setItem('pwaInstalled','1'); }catch(err){}
 }
 
 // 설치 완료 감지
-window.addEventListener('appinstalled',()=>{
-  localStorage.setItem('pwaInstalled','1');
-  document.getElementById('installBanner').classList.remove('show');
-});
+window.addEventListener('appinstalled', hideInstallUI);
 </script>
 </body>
 </html>
